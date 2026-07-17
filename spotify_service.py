@@ -44,7 +44,8 @@ class SpotifyService:
                     'title': track['name'],
                     'artist': track['artists'][0]['name'],
                     'image_url': track['album']['images'][0]['url'] if track['album']['images'] else None,
-                    'spotify_url': track['external_urls'].get('spotify')
+                    'spotify_url': track['external_urls'].get('spotify'),
+                    'preview_url': track.get('preview_url')
                 }
         except Exception as e:
             print(f"Spotify search error: {e}")

@@ -69,10 +69,11 @@ def chat():
                 track_data = {
                     "title": rec.title,
                     "artist": rec.artist,
-                "reason": rec.reason,
-                "uri": None,
-                "image_url": None,
-                "spotify_url": None
+                    "reason": rec.reason,
+                    "uri": None,
+                    "image_url": None,
+                    "spotify_url": None,
+                    "preview_url": None
             }
             
             # If logged in, search Spotify for the track

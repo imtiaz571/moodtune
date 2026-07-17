@@ -154,6 +154,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         clone.querySelector('.spotify-link').style.display = 'none';
                     }
                     
+                    const audioEl = clone.querySelector('.track-preview');
+                    if (audioEl) {
+                        if (track.preview_url) {
+                            audioEl.src = track.preview_url;
+                            audioEl.style.display = 'block';
+                        } else {
+                            audioEl.style.display = 'none';
+                        }
+                    }
+                    
                     // We can't append Node directly to HTML string, so we construct the HTML
                     const tmp = document.createElement('div');
                     tmp.appendChild(clone);
