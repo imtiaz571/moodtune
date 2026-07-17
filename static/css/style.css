@@ -1,9 +1,9 @@
 :root {
-    --bg-dark: #121212;
+    --bg-dark: #101114; /* Slightly different dark to match reference */
     --bg-surface: #1E1E1E;
     --bg-surface-light: #282828;
-    --text-main: #FFFFFF;
-    --text-dim: #B3B3B3;
+    --text-main: #E8EAED;
+    --text-dim: #9AA0A6;
     --spotify-green: #1DB954;
     --spotify-green-hover: #1ed760;
     --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -22,57 +22,44 @@ body {
     height: 100vh; /* Fallback for older browsers */
     height: 100dvh;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    overflow: hidden;
+    /* We'll set the radial gradient in JS or via a default class */
+    background: radial-gradient(circle at 50% 50%, rgba(29, 43, 83, 0.4) 0%, var(--bg-dark) 50%);
+    transition: background 1s ease;
 }
 
-.chat-container {
+.app-layout {
     width: 100%;
-    max-width: 800px;
-    height: 100vh; /* Fallback */
-    height: 100dvh;
+    max-width: 900px;
+    margin: 0 auto;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: var(--bg-dark);
     position: relative;
 }
 
-@media (min-width: 768px) {
-    .chat-container {
-        height: 90vh;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        overflow: hidden;
-        border: 1px solid var(--bg-surface-light);
-    }
-}
-
-.chat-header {
-    background-color: var(--bg-surface);
-    padding: 20px;
+/* ─── Header ─── */
+.app-header {
+    padding: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--bg-surface-light);
+    z-index: 10;
 }
 
-.header-content h1 {
-    font-size: 1.5rem;
+.logo {
+    font-size: 1.25rem;
     font-weight: 600;
     color: var(--spotify-green);
-    margin-bottom: 4px;
-}
-
-.header-content p {
-    font-size: 0.85rem;
-    color: var(--text-dim);
+    letter-spacing: -0.5px;
 }
 
 .auth-btn, .playlist-btn {
     background-color: var(--spotify-green);
     color: var(--bg-dark);
     border: none;
-    padding: 8px 16px;
+    padding: 8px 18px;
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.9rem;
@@ -87,34 +74,160 @@ body {
     transform: scale(1.05);
 }
 
+/* ─── Main Content Area ─── */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 0 20px 20px;
+}
+
+/* ─── Landing Mode Styles ─── */
+body.landing-mode .landing-hero {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 40px;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+body.landing-mode .chat-area {
+    display: none;
+}
+
+body.landing-mode .input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    transform: translateY(0);
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* ─── Chat Mode Styles ─── */
+body.chat-mode .landing-hero {
+    display: none;
+}
+
+body.chat-mode .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: fadeIn 0.8s ease forwards;
+}
+
+body.chat-mode .input-wrapper {
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ─── Hero Text ─── */
+.landing-hero h1 {
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--text-main);
+    text-align: center;
+}
+
+/* ─── Input Bar (Gemini style) ─── */
+#chat-form {
+    width: 100%;
+    max-width: 650px;
+    background: #1E1F22;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    padding: 6px 6px 6px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.3s, border-color 0.3s;
+}
+
+#chat-form:focus-within {
+    background: #25262A;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+#user-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 1rem;
+    outline: none;
+    font-family: var(--font-stack);
+    padding: 10px 0;
+}
+
+#user-input::placeholder {
+    color: var(--text-dim);
+}
+
+#send-btn {
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+#send-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#send-btn:disabled {
+    color: var(--text-dim);
+    cursor: not-allowed;
+    background: transparent;
+}
+
+/* ─── Chat Area ─── */
+.chat-area {
+    display: flex;
+    flex-direction: column;
+}
+
 .chat-box {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
+    padding: 20px 0;
     scroll-behavior: smooth;
-    /* Subtle music-themed doodles */
-    background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='M30 40c0-5.52 4.48-10 10-10h10v30H40c-5.52 0-10-4.48-10-10V40zm20-10h10v40H50V30zm60 30c0-5.52 4.48-10 10-10h10v30h-10c-5.52 0-10-4.48-10-10V60zm20-10h10v40h-10V50zm-90 90c0-5.52 4.48-10 10-10h10v30H30c-5.52 0-10-4.48-10-10v-10zm20-10h10v40H40v-40zm80 40c0-5.52 4.48-10 10-10h10v30h-10c-5.52 0-10-4.48-10-10v-10zm20-10h10v40h-10v-40z'/%3E%3Cpath d='M80 80h40v40H80z' fill='none' stroke='%23ffffff' stroke-width='2' stroke-opacity='0.02'/%3E%3Ccircle cx='100' cy='100' r='10' fill='none' stroke='%23ffffff' stroke-width='2' stroke-opacity='0.02'/%3E%3C/g%3E%3C/svg%3E");
-    background-size: 200px 200px;
-    background-repeat: repeat;
-    background-position: center;
 }
 
 .chat-box::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 .chat-box::-webkit-scrollbar-thumb {
     background-color: var(--bg-surface-light);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
+/* ─── Messages ─── */
 .message {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: 12px;
-    max-width: 85%;
+    max-width: 90%;
 }
 
 .bot-message {
@@ -127,24 +240,25 @@ body {
 }
 
 .avatar {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.2rem;
-    background-color: var(--bg-surface-light);
+    font-size: 1rem;
     flex-shrink: 0;
 }
 
 .bot-avatar {
-    background-color: var(--bg-surface-light);
+    background: rgba(29, 185, 84, 0.15);
 }
 
 .user-avatar {
-    background-color: var(--spotify-green);
-    color: var(--bg-dark);
+    background: var(--bg-surface-light);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.8rem;
 }
 
 .bubble {
@@ -156,50 +270,34 @@ body {
 }
 
 .bot-message .bubble {
-    background-color: var(--bg-surface);
-    border-bottom-left-radius: 4px;
-    color: var(--text-main);
+    background: transparent;
+    padding: 4px 0; /* Minimalist look, no bubble box for bot */
 }
 
 .user-message .bubble {
-    background-color: var(--spotify-green);
-    color: var(--bg-dark);
+    background: var(--bg-surface-light);
+    color: var(--text-main);
     border-bottom-right-radius: 4px;
-    font-weight: 500;
 }
 
-/* Animations */
-.fade-in {
-    animation: fadeInSlideUp 0.3s ease forwards;
-    opacity: 0;
-    transform: translateY(10px);
+.hidden {
+    display: none !important;
 }
 
-@keyframes fadeInSlideUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Typing Indicator */
+/* ─── Typing Indicator ─── */
 .typing-indicator {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: 12px;
-    padding: 0 20px 10px;
-}
-.typing-indicator.hidden {
-    display: none;
+    padding-bottom: 20px;
 }
 
 .typing-bubble {
-    background-color: var(--bg-surface);
-    border-bottom-left-radius: 4px;
+    background: transparent;
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 16px 20px;
+    padding: 10px 0;
 }
 
 .dot {
@@ -209,7 +307,6 @@ body {
     border-radius: 50%;
     animation: typingBounce 1.4s infinite ease-in-out;
 }
-
 .dot:nth-child(1) { animation-delay: -0.32s; }
 .dot:nth-child(2) { animation-delay: -0.16s; }
 
@@ -218,108 +315,55 @@ body {
     40% { transform: translateY(-6px); }
 }
 
-/* Input Area */
-.chat-input-area {
-    padding: 20px;
-    background-color: var(--bg-surface);
-    border-top: 1px solid var(--bg-surface-light);
-}
-
-#chat-form {
-    display: flex;
-    gap: 12px;
-    background-color: var(--bg-surface-light);
-    border-radius: 24px;
-    padding: 8px 16px;
-}
-
-#user-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-main);
-    font-size: 1rem;
-    outline: none;
-    font-family: inherit;
-}
-
-#user-input::placeholder {
-    color: var(--text-dim);
-}
-
-#send-btn {
-    background: transparent;
-    border: none;
-    color: var(--spotify-green);
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.2s, color 0.2s;
-    padding: 4px;
-}
-
-#send-btn:hover {
-    transform: scale(1.1);
-    color: var(--spotify-green-hover);
-}
-
-#send-btn:disabled {
-    color: var(--text-dim);
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Track Recommendations Wrapper */
+/* ─── Track Recommendations ─── */
 .recommendations-wrapper {
-    margin-top: 12px;
+    margin-top: 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
+    max-width: 400px;
 }
 
 .track-card {
     display: flex;
     align-items: center;
     gap: 12px;
-    background-color: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px;
-    border-radius: 8px;
-    transition: background-color 0.2s;
+    border-radius: 12px;
+    transition: background 0.2s ease;
 }
 
 .track-card:hover {
-    background-color: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.08);
 }
 
-/* Album Art Wrapper with Preview Overlay */
 .track-art-wrapper {
     position: relative;
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     flex-shrink: 0;
     border-radius: 6px;
     overflow: hidden;
 }
 
 .track-img {
-    width: 56px;
-    height: 56px;
-    border-radius: 6px;
+    width: 48px;
+    height: 48px;
     object-fit: cover;
-    background-color: var(--bg-surface-light);
+    background: #333;
     display: block;
 }
 
-/* Play/Pause Button Overlay */
 .preview-btn {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     border: none;
     cursor: pointer;
     display: flex;
@@ -327,7 +371,6 @@ body {
     align-items: center;
     opacity: 0;
     transition: opacity 0.2s ease;
-    border-radius: 6px;
     z-index: 2;
 }
 
@@ -335,32 +378,23 @@ body {
     opacity: 1;
 }
 
-/* Always show button when playing */
 .track-card.playing .preview-btn {
     opacity: 1;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
 }
 
-/* Pulsing glow on playing card */
 .track-card.playing {
-    background-color: rgba(29, 185, 84, 0.1);
-    box-shadow: 0 0 12px rgba(29, 185, 84, 0.2);
-    animation: playingPulse 2s ease-in-out infinite;
+    background: rgba(29, 185, 84, 0.1);
+    border-color: rgba(29, 185, 84, 0.3);
 }
 
-@keyframes playingPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(29, 185, 84, 0.15); }
-    50% { box-shadow: 0 0 16px rgba(29, 185, 84, 0.3); }
-}
-
-/* Progress Bar at bottom of album art */
 .preview-progress {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     height: 3px;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.2);
     z-index: 3;
 }
 
@@ -378,7 +412,7 @@ body {
 }
 
 .track-title {
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
@@ -415,7 +449,6 @@ body {
 
 .playlist-controls {
     margin-top: 12px;
-    text-align: right;
 }
 
 .error-text {
@@ -431,54 +464,26 @@ body {
     font-weight: 600;
     margin-top: 8px;
     letter-spacing: 0.3px;
-    animation: fadeInSlideUp 0.4s ease forwards;
     opacity: 0;
+    animation: fadeIn 0.4s ease forwards;
     animation-delay: 0.2s;
 }
 
 /* ─── Mobile Responsive Adjustments ─── */
 @media (max-width: 480px) {
-    .chat-header {
-        padding: 14px 16px;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-    
-    .header-content {
-        flex: 1 1 100%; /* Force title/description to its own line if it gets too tight, but initially it can try to fit */
-    }
-
-    /* Actually, a better approach for the header on mobile is to keep it flex-row but shrink things */
-    .chat-header {
-        flex-wrap: nowrap;
-    }
-
-    .header-content h1 {
-        font-size: 1.25rem;
-    }
-
-    .header-content p {
-        font-size: 0.75rem;
-        /* Prevent the text from wrapping awkwardly by allowing it to truncate if absolutely necessary, or just letting it wrap cleanly */
-        line-height: 1.3;
-    }
-
-    .auth-btn, .playlist-btn {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-        white-space: nowrap; /* Prevent button text from wrapping */
-    }
-
-    .chat-box {
+    .app-header {
         padding: 16px;
-        gap: 16px;
     }
-
+    .landing-hero h1 {
+        font-size: 1.8rem;
+    }
+    #chat-form {
+        padding: 4px 4px 4px 16px;
+    }
+    .main-content {
+        padding: 0 16px 16px;
+    }
     .message {
-        max-width: 95%; /* Give messages a bit more room on small screens */
-    }
-
-    .chat-input-area {
-        padding: 12px 16px 16px;
+        max-width: 95%;
     }
 }

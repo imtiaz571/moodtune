@@ -147,9 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyMoodGlow(mood) {
         const theme = getMoodTheme(mood);
-        const container = document.querySelector('.chat-container');
-        container.style.transition = 'box-shadow 0.6s ease';
-        container.style.boxShadow = `0 0 40px ${theme.glow}, 0 8px 32px rgba(0,0,0,0.5)`;
+        const glowColor = theme.glow.replace('0.15', '0.2').replace('0.1', '0.2'); // slightly stronger for the radial background
+        document.body.style.background = `radial-gradient(circle at 50% 50%, ${glowColor} 0%, var(--bg-dark) 60%)`;
     }
 
     function scrollToBottom() {
@@ -201,10 +200,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    let isFirstMessage = true;
+
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = userInput.value.trim();
         if (!text) return;
+
+        if (isFirstMessage) {
+            document.body.classList.remove('landing-mode');
+            document.body.classList.add('chat-mode');
+            document.getElementById('chat-area').classList.remove('hidden');
+            isFirstMessage = false;
+        }
 
         // Add user message
         appendMessage('user', text);
