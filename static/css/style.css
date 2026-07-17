@@ -122,6 +122,10 @@ body.landing-mode .preset-chips-container {
     width: 100%;
 }
 
+body.landing-mode .input-wrapper:focus-within + .preset-chips-container {
+    display: none;
+}
+
 /* ─── Chat Mode Styles ─── */
 body.chat-mode .landing-hero,
 body.chat-mode .preset-chips-container {
