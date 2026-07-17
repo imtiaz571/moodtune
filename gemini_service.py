@@ -141,6 +141,18 @@ class GeminiService:
             "based on the user's emotional state."
         )
 
+        if user_profile:
+            system_instruction += (
+                f"\n\nUSER PROFILE:\n"
+                f"The user has provided the following profile information:\n"
+                f"- Age: {user_profile.get('age', 'Unknown')}\n"
+                f"- Preferred Language: {user_profile.get('language', 'English')}\n"
+                f"- Music Taste/Genres: {user_profile.get('taste', 'General')}\n\n"
+                f"CRITICAL INSTRUCTION: You MUST use this profile to highly personalize your song recommendations "
+                f"and conversational tone. Ensure your song choices align with their stated taste and age demographic, "
+                f"and reply in their preferred language if specified."
+            )
+
         # Build contents with history
         contents = []
         for msg in self.history:

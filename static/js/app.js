@@ -6,6 +6,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('send-btn');
     const spotifyAuthContainer = document.getElementById('spotify-auth-container');
 
+    // ─── User Profile Onboarding ───
+    const onboardingModal = document.getElementById('onboarding-modal');
+    const onboardingForm = document.getElementById('onboarding-form');
+    let userProfile = null;
+
+    try {
+        const storedProfile = localStorage.getItem('user_profile');
+        if (storedProfile) {
+            userProfile = JSON.parse(storedProfile);
+        } else {
+            // Show modal if no profile
+            onboardingModal.classList.remove('hidden');
+        }
+    } catch (e) {
+        console.error("Error loading user profile", e);
+        onboardingModal.classList.remove('hidden');
+    }
+
+    if (onboardingForm) {
+        onboardingForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const age = document.getElementById('user-age').value;
+            const language = document.getElementById('user-language').value;
+            const taste = document.getElementById('user-taste').value;
+
+            userProfile = {
+                age: age || null,
+                language: language || "English",
+                taste: taste || "General"
+            };
+
+            localStorage.setItem('user_profile', JSON.stringify(userProfile));
+            onboardingModal.classList.add('hidden');
+        });
+    }
+
     // ─── Audio Preview Player (Instagram-style) ───
     let currentAudio = null;
     let currentCard = null;
@@ -247,7 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
+                body: JSON.stringify({ 
+                    message: text,
+                    profile: userProfile
+                })
             });
 
             const data = await res.json();
