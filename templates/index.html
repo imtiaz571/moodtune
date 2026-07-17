@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="landing-mode">
+    <canvas id="glcanvas"></canvas>
+    
     <header class="app-header">
         <a href="/" class="logo" style="text-decoration: none;">MoodTunes</a>
         <div id="spotify-auth-container">
@@ -89,6 +91,7 @@
         </div>
     </template>
 
+    <script src="{{ url_for('static', filename='js/background.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

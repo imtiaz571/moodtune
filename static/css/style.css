@@ -24,9 +24,16 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* We'll set the radial gradient in JS or via a default class */
-    background: radial-gradient(circle at 50% 50%, rgba(29, 43, 83, 0.4) 0%, var(--bg-dark) 50%);
-    transition: background 1s ease;
+}
+
+#glcanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Place it behind everything */
+    pointer-events: none; /* Let clicks pass through to the chat */
 }
 
 .app-layout {
