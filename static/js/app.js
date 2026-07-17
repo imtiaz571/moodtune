@@ -117,39 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isSpotifyLoggedIn = false;
 
-    let isFirstMessage = true;
-
-    function saveMessage(sender, text, isHtml, mood) {
-        let history = JSON.parse(localStorage.getItem('moodtunes_chat_history') || '[]');
-        history.push({ sender, text, isHtml, mood });
-        localStorage.setItem('moodtunes_chat_history', JSON.stringify(history));
-    }
-
-    function loadChatHistory() {
-        let history = JSON.parse(localStorage.getItem('moodtunes_chat_history') || '[]');
-        if (history.length > 0) {
-            document.body.classList.remove('landing-mode');
-            document.body.classList.add('chat-mode');
-            document.getElementById('chat-area').classList.remove('hidden');
-            isFirstMessage = false;
-
-            // Wait a tick for chat-box to be visible before appending
-            setTimeout(() => {
-                history.forEach(msg => {
-                    appendMessage(msg.sender, msg.text, msg.isHtml, msg.mood, false);
-                });
-                
-                const lastBotMsg = history.slice().reverse().find(m => m.sender === 'bot');
-                if (lastBotMsg && lastBotMsg.mood) {
-                    applyMoodGlow(lastBotMsg.mood);
-                }
-                scrollToBottom();
-            }, 0);
-        }
-    }
-    
-    loadChatHistory();
-
     // Check Spotify Auth Status
     fetch('/api/auth_status')
         .then(res => res.json())
@@ -170,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => console.error("Error fetching auth status", err));
 
-    function appendMessage(sender, text, isHtml = false, mood = null, save = true) {
+    function appendMessage(sender, text, isHtml = false, mood = null) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}-message fade-in`;
 
@@ -194,11 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chatBox.insertBefore(msgDiv, typingIndicator);
         scrollToBottom();
-
-        if (save) {
-            saveMessage(sender, text, isHtml, mood);
-        }
-
         return msgDiv;
     }
 
@@ -258,6 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Save as Playlist 📝"; }, 3000);
         }
     };
+
+    let isFirstMessage = true;
 
     // Handle preset chips
     const presetChips = document.querySelectorAll('.preset-chip');
