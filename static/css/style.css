@@ -37,6 +37,7 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
+    min-height: 0;
 }
 
 /* ─── Header ─── */
@@ -81,6 +82,7 @@ body {
     flex-direction: column;
     position: relative;
     padding: 0 20px 20px;
+    min-height: 0; /* Critical for nested flex scrolling */
 }
 
 /* ─── Landing Mode Styles ─── */
@@ -117,6 +119,7 @@ body.chat-mode .chat-area {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0; /* Critical for nested flex scrolling */
     animation: fadeIn 0.8s ease forwards;
 }
 
