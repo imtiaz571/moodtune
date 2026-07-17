@@ -20,19 +20,20 @@ const fsSource = `
         float v = sin(p.x * 4.0 + t) + cos(p.y * 3.0 + t) + sin(p.x * p.y * 6.0 - t);
         v *= 0.5;
 
-        vec3 col1 = vec3(0.02, 0.0, 0.05);
-        vec3 col2 = vec3(1.0, 0.85, 0.9);
-        vec3 col3 = vec3(0.1, 0.5, 0.9);
-        vec3 col4 = vec3(0.7, 0.1, 0.4);
+        // Darkened color palette
+        vec3 col1 = vec3(0.01, 0.0, 0.02);
+        vec3 col2 = vec3(0.3, 0.15, 0.2);
+        vec3 col3 = vec3(0.05, 0.1, 0.3);
+        vec3 col4 = vec3(0.2, 0.05, 0.15);
 
         vec3 color = mix(col1, col2, smoothstep(-1.0, 1.0, v));
         color = mix(color, col3, smoothstep(-0.5, 0.5, sin(p.y * 6.0 - t)));
         color = mix(color, col4, smoothstep(0.0, 1.0, cos(p.x * 5.0 + t)));
 
         float bright = smoothstep(0.7, 1.0, sin(v * 15.0));
-        color += vec3(1.0, 0.9, 0.95) * bright * 0.3; // Reduced brightness multiplier
+        color += vec3(0.5, 0.4, 0.45) * bright * 0.2; // Further reduced brightness
 
-        return color * 0.6; // Darken the overall background
+        return color * 0.5; // Overall darkening factor
     }
 
     void main() {
@@ -57,13 +58,13 @@ const fsSource = `
         vec3 finalColor = vec3(r, g, b);
 
         float edgeShadow = smoothstep(0.0, 0.15, bandFract) * smoothstep(1.0, 0.85, bandFract);
-        finalColor *= edgeShadow * 0.8 + 0.2; // Adjusted shadow contrast
+        finalColor *= edgeShadow * 0.9 + 0.1; // Deeper shadows between bands
         
         float highlight = pow(1.0 - edgeShadow, 2.5);
-        finalColor += vec3(1.0) * highlight * 0.15; // Reduced highlight intensity
+        finalColor += vec3(0.8) * highlight * 0.1; // Reduced highlight intensity
 
-        // Output color with an alpha value less than 1.0 to simulate lower opacity
-        gl_FragColor = vec4(finalColor, 0.85); 
+        // Output color with lowered opacity
+        gl_FragColor = vec4(finalColor, 0.7); 
     }
 `;
 
