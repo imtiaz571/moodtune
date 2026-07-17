@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showTyping() {
+        chatBox.appendChild(typingIndicator);
         typingIndicator.classList.remove('hidden');
         scrollToBottom();
     }
