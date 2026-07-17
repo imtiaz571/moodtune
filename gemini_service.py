@@ -96,7 +96,7 @@ class GeminiService:
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-3.5-flash",
+                model="gemini-2.0-flash",
                 contents=contents,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
