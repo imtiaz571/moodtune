@@ -1,4 +1,6 @@
 import os
+import json
+from openai import OpenAI
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -42,9 +44,55 @@ class GeminiService:
             self.client = None
         else:
             self.client = genai.Client(api_key=api_key)
+            
+        # Initialize Nvidia fallback client
+        self.nvidia_client = OpenAI(
+            base_url="https://integrate.api.nvidia.com/v1",
+            api_key="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"
+        )
         
         # We will keep a simple list-based history for the chat API
         self.history = []
+
+    def fallback_nvidia(self, user_input: str, system_instruction: str) -> MoodResponse:
+        messages = [
+            {
+                "role": "system", 
+                "content": system_instruction + "\n\nYou MUST respond with valid JSON matching this exact structure: {\"detected_mood\": \"string\", \"reply\": \"string\", \"recommendations\": [{\"title\": \"string\", \"artist\": \"string\", \"reason\": \"string\"}]}. If no recommendations, use null for the recommendations array. Do not include markdown code blocks like ```json."
+            }
+        ]
+        for msg in self.history:
+            role = "assistant" if msg['role'] == "model" else msg['role']
+            messages.append({"role": role, "content": msg['text']})
+            
+        messages.append({"role": "user", "content": user_input})
+        
+        print("Falling back to NVIDIA model...")
+        completion = self.nvidia_client.chat.completions.create(
+            model="nvidia/nemotron-3-ultra-550b-a55b",
+            messages=messages,
+            temperature=0.85,
+            top_p=0.95,
+            max_tokens=1024,
+            stream=False
+        )
+        
+        content = completion.choices[0].message.content
+        try:
+            if content.startswith("```json"):
+                content = content[7:-3]
+            elif content.startswith("```"):
+                content = content[3:-3]
+            data = json.loads(content.strip())
+            return MoodResponse(**data)
+        except Exception as e:
+            print("Failed to parse Nvidia response as JSON:", e)
+            print("Raw content:", content)
+            return MoodResponse(
+                detected_mood="neutral", 
+                reply=content, 
+                recommendations=None
+            )
 
     def get_mood_recommendation(self, user_input: str) -> MoodResponse | None:
         if not self.client:
@@ -115,7 +163,12 @@ class GeminiService:
                  
             return response.parsed
         except Exception as e:
-            print(f"Error generating content: {e}")
+            print(f"Gemini API error: {e}")
+            if "429" in str(e) or "quota" in str(e).lower() or "RESOURCE_EXHAUSTED" in str(e):
+                parsed = self.fallback_nvidia(user_input, system_instruction)
+                self.history.append({"role": "user", "text": user_input})
+                self.history.append({"role": "model", "text": parsed.reply})
+                return parsed
             raise
 
     def clear_history(self):
