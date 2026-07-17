@@ -86,12 +86,14 @@ body {
 }
 
 /* ─── Landing Mode Styles ─── */
-body.landing-mode .landing-hero {
-    flex: 1;
-    display: flex;
+body.landing-mode .main-content {
+    justify-content: center;
     align-items: center;
-    justify-content: flex-end;
-    padding-bottom: 40px;
+    gap: 30px;
+}
+
+body.landing-mode .landing-hero {
+    display: block;
     opacity: 1;
     transition: opacity 0.5s ease;
 }
@@ -101,16 +103,22 @@ body.landing-mode .chat-area {
 }
 
 body.landing-mode .input-wrapper {
-    flex: 1;
+    width: 100%;
     display: flex;
-    align-items: flex-start;
     justify-content: center;
     transform: translateY(0);
     transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+body.landing-mode .preset-chips-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
 /* ─── Chat Mode Styles ─── */
-body.chat-mode .landing-hero {
+body.chat-mode .landing-hero,
+body.chat-mode .preset-chips-container {
     display: none;
 }
 
@@ -137,9 +145,7 @@ body.chat-mode .input-wrapper {
 
 /* ─── Hero Text ─── */
 .landing-hero {
-    flex-direction: column;
-    align-items: center;
-    gap: 32px;
+    text-align: center;
 }
 
 .landing-hero h1 {
