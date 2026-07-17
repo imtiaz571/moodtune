@@ -13,7 +13,7 @@ class TrackRecommendation(BaseModel):
 
 class MoodResponse(BaseModel):
     reply: str = Field(description="A natural conversational reply to the user")
-    recommendations: list[TrackRecommendation] = Field(description="List of 6 to 8 track recommendations")
+    recommendations: list[TrackRecommendation] | None = Field(default=None, description="Provide 6-8 track recommendations ONLY when the user asks for a playlist or songs. Leave this null when just chatting.")
 
 class GeminiService:
     def __init__(self):
@@ -34,9 +34,12 @@ class GeminiService:
         # System prompt setting the persona
         system_instruction = (
             "You are MoodTunes, an enthusiastic and knowledgeable music recommendation assistant. "
-            "Chat naturally with the user to understand their mood, genre preference, or direct request. "
-            "Always return your response matching the requested JSON schema, containing both a friendly conversational 'reply' "
-            "and a list of 6-8 song 'recommendations'. Make the reasons short and engaging."
+            "Flow:\n"
+            "1. Greet the user and ask how they are feeling or what type of music they like.\n"
+            "2. Ask if they are looking for a single song or a full playlist.\n"
+            "3. Only populate the 'recommendations' array when you have enough context and they explicitly want recommendations. "
+            "If you are just asking questions or chatting, leave the 'recommendations' array null or empty.\n"
+            "When providing recommendations, include 6-8 songs with short, engaging reasons."
         )
 
         # Build contents with history

@@ -64,10 +64,11 @@ def chat():
         sp_client = spotify_service.get_client(token_info)
         
         tracks = []
-        for rec in mood_response.recommendations:
-            track_data = {
-                "title": rec.title,
-                "artist": rec.artist,
+        if mood_response.recommendations:
+            for rec in mood_response.recommendations:
+                track_data = {
+                    "title": rec.title,
+                    "artist": rec.artist,
                 "reason": rec.reason,
                 "uri": None,
                 "image_url": None,
