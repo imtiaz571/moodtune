@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         msgDiv.appendChild(bubble);
 
-        chatBox.appendChild(msgDiv);
+        chatBox.insertBefore(msgDiv, typingIndicator);
         scrollToBottom();
         return msgDiv;
     }
@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showTyping() {
+        chatBox.appendChild(typingIndicator);
         typingIndicator.classList.remove('hidden');
         scrollToBottom();
     }
