@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const playableTrack = data.tracks.find(t => t.spotify_url);
                 if (playableTrack) {
-                    controlsHtml += `<button class="playlist-btn" onclick="window.open('${playableTrack.spotify_url}', '_blank')">Listen on Spotify 🎧</button>`;
+                    controlsHtml += `<a href="${playableTrack.spotify_url}" target="_blank" class="playlist-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Listen on Spotify 🎧</a>`;
                 }
                 
                 const hasUris = data.tracks.some(t => t.uri);
