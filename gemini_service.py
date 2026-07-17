@@ -141,14 +141,15 @@ class GeminiService:
             "based on the user's emotional state."
         )
 
-        if len(self.history) == 0:
-            system_instruction += (
-                "\n\nCRITICAL INSTRUCTION FOR FIRST MESSAGE:\n"
-                "This is the user's very first message. Before giving any song recommendations, "
-                "you MUST warmly greet them, acknowledge their mood, and ask them for their "
-                "Age, Preferred Language, and Music Taste. Tell them you need this to personalize "
-                "their experience. DO NOT provide song recommendations in this first reply."
-            )
+        # Ongoing Onboarding Instruction
+        system_instruction += (
+            "\n\nCRITICAL INSTRUCTION FOR ONBOARDING:\n"
+            "To personalize the experience, you MUST collect the user's: 1) Age, 2) Preferred Language, and 3) Music Taste.\n"
+            "CRITICAL RULE: You MUST ask these questions ONE BY ONE. DO NOT ask them all at once.\n"
+            "If this is the first message, warmly greet them, acknowledge their mood, and ONLY ask for their Age.\n"
+            "In the following turns, acknowledge their answer and ask the next missing piece of information.\n"
+            "DO NOT provide song recommendations until you have collected ALL THREE pieces of information."
+        )
 
         # Build contents with history
         contents = []
