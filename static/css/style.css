@@ -468,3 +468,13 @@ body.chat-mode .input-wrapper {
         max-width: 95%;
     }
 }
+
+.playlist-btn.secondary {
+    background: transparent;
+    border: 1px solid var(--spotify-green);
+    color: var(--spotify-green);
+}
+
+.playlist-btn.secondary:hover {
+    background: rgba(29, 185, 84, 0.1);
+}

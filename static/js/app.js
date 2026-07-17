@@ -187,12 +187,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     btnElement.textContent = "Failed to create";
                 }
-                setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Listen on Spotify"; }, 3000);
+                setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Save as Playlist 📝"; }, 3000);
             }
         } catch (e) {
             console.error(e);
             btnElement.textContent = "Error";
-            setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Listen on Spotify"; }, 3000);
+            setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Save as Playlist 📝"; }, 3000);
         }
     };
 
@@ -292,7 +292,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     botContent += tmp.innerHTML;
                 });
 
-                botContent += `<div class="playlist-controls"><button class="playlist-btn" onclick="createPlaylist(this)">Listen on Spotify 🎧</button></div>`;
+                let controlsHtml = `<div class="playlist-controls" style="display: flex; gap: 10px;">`;
+                
+                const playableTrack = data.tracks.find(t => t.spotify_url);
+                if (playableTrack) {
+                    controlsHtml += `<button class="playlist-btn" onclick="window.open('${playableTrack.spotify_url}', '_blank')">Listen on Spotify 🎧</button>`;
+                }
+                
+                const hasUris = data.tracks.some(t => t.uri);
+                if (hasUris) {
+                    controlsHtml += `<button class="playlist-btn secondary" onclick="createPlaylist(this)">Save as Playlist 📝</button>`;
+                }
+                
+                controlsHtml += `</div>`;
+                botContent += controlsHtml;
                 botContent += `</div>`;
             }
 
