@@ -19,7 +19,8 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-main);
     font-family: var(--font-stack);
-    height: 100vh;
+    height: 100vh; /* Fallback for older browsers */
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -28,7 +29,8 @@ body {
 .chat-container {
     width: 100%;
     max-width: 800px;
-    height: 100vh;
+    height: 100vh; /* Fallback */
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-dark);
