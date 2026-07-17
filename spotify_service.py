@@ -9,7 +9,7 @@ class SpotifyService:
     def __init__(self):
         self.client_id = os.getenv("SPOTIFY_CLIENT_ID")
         self.client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
-        self.redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:5000/callback")
+        self.redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI", "https://moodtune-nine.vercel.app/callback")
         
         self.scopes = "playlist-modify-public playlist-modify-private"
         
@@ -33,7 +33,8 @@ class SpotifyService:
         if not client:
             return None
             
-        query = f"track:{title} artist:{artist}"
+        # Use a more relaxed search query for better fuzzy matching
+        query = f"{title} {artist}"
         try:
             results = client.search(q=query, type='track', limit=1)
             tracks = results.get('tracks', {}).get('items', [])

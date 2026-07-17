@@ -61,7 +61,21 @@ def chat():
             
         # Get Spotify client if logged in
         token_info = session.get("token_info")
-        sp_client = spotify_service.get_client(token_info)
+        sp_client = None
+        
+        if token_info:
+            sp_oauth = spotify_service.get_oauth_manager()
+            if sp_oauth.is_token_expired(token_info):
+                try:
+                    token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+                    session["token_info"] = token_info
+                except Exception as e:
+                    print(f"Failed to refresh token: {e}")
+                    session.pop("token_info", None)
+                    token_info = None
+                    
+            if token_info:
+                sp_client = spotify_service.get_client(token_info)
         
         tracks = []
         if mood_response.recommendations:
@@ -74,15 +88,15 @@ def chat():
                     "image_url": None,
                     "spotify_url": None,
                     "preview_url": None
-            }
-            
-            # If logged in, search Spotify for the track
-            if sp_client:
-                sp_match = spotify_service.search_track(sp_client, rec.title, rec.artist)
-                if sp_match:
-                    track_data.update(sp_match)
-                    
-            tracks.append(track_data)
+                }
+                
+                # If logged in, search Spotify for the track
+                if sp_client:
+                    sp_match = spotify_service.search_track(sp_client, rec.title, rec.artist)
+                    if sp_match:
+                        track_data.update(sp_match)
+                        
+                tracks.append(track_data)
             
         return jsonify({
             "reply": mood_response.reply,
@@ -106,6 +120,17 @@ def create_playlist():
     if not uris:
         return jsonify({"error": "No tracks to add", "success": False}), 400
         
+    if token_info:
+        sp_oauth = spotify_service.get_oauth_manager()
+        if sp_oauth.is_token_expired(token_info):
+            try:
+                token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+                session["token_info"] = token_info
+            except Exception as e:
+                print(f"Failed to refresh token: {e}")
+                session.pop("token_info", None)
+                return jsonify({"error": "not_logged_in", "success": False}), 401
+                
     sp_client = spotify_service.get_client(token_info)
     
     try:
