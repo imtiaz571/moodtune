@@ -6,6 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('send-btn');
     const spotifyAuthContainer = document.getElementById('spotify-auth-container');
 
+    // ─── Visual Viewport Fix for Mobile Keyboards ───
+    if (window.visualViewport) {
+        const updateViewportHeight = () => {
+            document.body.style.height = window.visualViewport.height + 'px';
+            // Scroll to the bottom of the chat when the keyboard pops up
+            if (document.body.classList.contains('chat-mode') && chatBox) {
+                setTimeout(() => {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }, 100); // small delay to let the layout recalculate
+            }
+        };
+        window.visualViewport.addEventListener('resize', updateViewportHeight);
+        updateViewportHeight();
+    }
+
     // ─── Audio Preview Player (Instagram-style) ───
     let currentAudio = null;
     let currentCard = null;
