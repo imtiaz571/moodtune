@@ -214,11 +214,7 @@ body.chat-mode .input-wrapper {
     scroll-behavior: smooth;
 }
 
-/* Push messages to the bottom so they rise up like Gemini/ChatGPT */
-.chat-box::before {
-    content: "";
-    flex: 1 1 auto;
-}
+
 
 .chat-box::-webkit-scrollbar {
     width: 6px;
