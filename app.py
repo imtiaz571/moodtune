@@ -86,6 +86,7 @@ def chat():
             
         return jsonify({
             "reply": mood_response.reply,
+            "mood": mood_response.detected_mood,
             "tracks": tracks
         })
         

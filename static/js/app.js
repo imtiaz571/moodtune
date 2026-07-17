@@ -5,7 +5,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const typingIndicator = document.getElementById('typing-indicator');
     const sendBtn = document.getElementById('send-btn');
     const spotifyAuthContainer = document.getElementById('spotify-auth-container');
-    
+
+    // Mood → visual theme mapping
+    const moodThemes = {
+        happy:      { emoji: '😄', color: '#FFD700', label: 'Happy',       glow: 'rgba(255, 215, 0, 0.15)' },
+        sad:        { emoji: '😢', color: '#6B8DD6', label: 'Sad',         glow: 'rgba(107, 141, 214, 0.15)' },
+        angry:      { emoji: '🔥', color: '#FF4444', label: 'Angry',       glow: 'rgba(255, 68, 68, 0.15)' },
+        anxious:    { emoji: '😰', color: '#A78BFA', label: 'Anxious',     glow: 'rgba(167, 139, 250, 0.15)' },
+        chill:      { emoji: '😎', color: '#34D399', label: 'Chill',       glow: 'rgba(52, 211, 153, 0.15)' },
+        romantic:   { emoji: '💕', color: '#F472B6', label: 'Romantic',    glow: 'rgba(244, 114, 182, 0.15)' },
+        energetic:  { emoji: '⚡', color: '#FBBF24', label: 'Energetic',   glow: 'rgba(251, 191, 36, 0.15)' },
+        melancholic:{ emoji: '🌧️', color: '#93C5FD', label: 'Melancholic', glow: 'rgba(147, 197, 253, 0.15)' },
+        nostalgic:  { emoji: '🌅', color: '#FCA5A5', label: 'Nostalgic',   glow: 'rgba(252, 165, 165, 0.15)' },
+        hopeful:    { emoji: '✨', color: '#6EE7B7', label: 'Hopeful',     glow: 'rgba(110, 231, 183, 0.15)' },
+        lonely:     { emoji: '🌙', color: '#A5B4FC', label: 'Lonely',     glow: 'rgba(165, 180, 252, 0.15)' },
+        confident:  { emoji: '💪', color: '#F59E0B', label: 'Confident',   glow: 'rgba(245, 158, 11, 0.15)' },
+        neutral:    { emoji: '🤖', color: '#9CA3AF', label: 'Neutral',     glow: 'rgba(156, 163, 175, 0.1)' },
+    };
+
+    function getMoodTheme(mood) {
+        return moodThemes[(mood || '').toLowerCase()] || moodThemes.neutral;
+    }
+
     // Check Spotify Auth Status
     fetch('/api/auth_status')
         .then(res => res.json())
@@ -19,28 +40,43 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => console.error("Error fetching auth status", err));
 
-    function appendMessage(sender, text, isHtml = false) {
+    function appendMessage(sender, text, isHtml = false, mood = null) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}-message fade-in`;
-        
+
+        const theme = getMoodTheme(mood);
+
         const avatar = document.createElement('div');
         avatar.className = `avatar ${sender}-avatar`;
-        avatar.textContent = sender === 'bot' ? '🤖' : 'U';
-        
+        avatar.textContent = sender === 'bot' ? theme.emoji : 'U';
+
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
+
+        // Apply mood-colored left border accent for bot messages
+        if (sender === 'bot' && mood && mood !== 'neutral') {
+            bubble.style.borderLeft = `3px solid ${theme.color}`;
+        }
+
         if (isHtml) {
             bubble.innerHTML = text;
         } else {
             bubble.textContent = text;
         }
-        
+
         msgDiv.appendChild(avatar);
         msgDiv.appendChild(bubble);
-        
+
         chatBox.appendChild(msgDiv);
         scrollToBottom();
         return msgDiv;
+    }
+
+    function applyMoodGlow(mood) {
+        const theme = getMoodTheme(mood);
+        const container = document.querySelector('.chat-container');
+        container.style.transition = 'box-shadow 0.6s ease';
+        container.style.boxShadow = `0 0 40px ${theme.glow}, 0 8px 32px rgba(0,0,0,0.5)`;
     }
 
     function scrollToBottom() {
@@ -58,16 +94,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle creating playlist
     window.createPlaylist = async function(btnElement) {
-        // Collect URIs from the current recommendation block
         const container = btnElement.closest('.recommendations-wrapper');
         const cards = container.querySelectorAll('.track-card');
         const uris = Array.from(cards).map(card => card.dataset.uri).filter(uri => uri);
-        
+
         if (uris.length === 0) return;
 
         btnElement.disabled = true;
         btnElement.textContent = "Creating...";
-        
+
         try {
             const res = await fetch('/api/create_playlist', {
                 method: 'POST',
@@ -75,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ uris: uris })
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 btnElement.outerHTML = `<a href="${data.url}" target="_blank" class="playlist-btn" style="background: var(--spotify-green);">Open Playlist 🎵</a>`;
             } else {
@@ -102,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appendMessage('user', text);
         userInput.value = '';
         sendBtn.disabled = true;
-        
+
         // Show typing
         showTyping();
 
@@ -112,48 +147,59 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: text })
             });
-            
+
             const data = await res.json();
             hideTyping();
-            
+
             if (data.error) {
                 appendMessage('bot', `<span class="error-text">Error: ${data.error}</span>`, true);
                 sendBtn.disabled = false;
                 return;
             }
 
-            // Create bot message container
+            const mood = data.mood || 'neutral';
+            const theme = getMoodTheme(mood);
+
+            // Apply mood glow to container
+            applyMoodGlow(mood);
+
+            // Build bot message content with mood badge
             let botContent = `<p>${data.reply}</p>`;
-            
+
+            // Add a mood badge pill
+            if (mood !== 'neutral') {
+                botContent += `<span class="mood-badge" style="background: ${theme.color}22; color: ${theme.color}; border: 1px solid ${theme.color}44;">${theme.emoji} ${theme.label}</span>`;
+            }
+
             // If recommendations exist, append them
             if (data.tracks && data.tracks.length > 0) {
                 botContent += `<div class="recommendations-wrapper">`;
                 const template = document.getElementById('track-card-template');
-                
+
                 data.tracks.forEach(track => {
                     const clone = template.content.cloneNode(true);
                     const card = clone.querySelector('.track-card');
-                    
+
                     if (track.uri) {
                         card.dataset.uri = track.uri;
                     } else {
-                        card.style.opacity = '0.6'; // Dim if no match found
+                        card.style.opacity = '0.6';
                     }
-                    
+
                     clone.querySelector('.track-title').textContent = track.title;
                     clone.querySelector('.track-artist').textContent = track.artist;
                     clone.querySelector('.track-reason').textContent = track.reason;
-                    
+
                     if (track.image_url) {
                         clone.querySelector('.track-img').src = track.image_url;
                     }
-                    
+
                     if (track.spotify_url) {
                         clone.querySelector('.spotify-link').href = track.spotify_url;
                     } else {
                         clone.querySelector('.spotify-link').style.display = 'none';
                     }
-                    
+
                     const audioEl = clone.querySelector('.track-preview');
                     if (audioEl) {
                         if (track.preview_url) {
@@ -163,25 +209,24 @@ document.addEventListener('DOMContentLoaded', () => {
                             audioEl.style.display = 'none';
                         }
                     }
-                    
-                    // We can't append Node directly to HTML string, so we construct the HTML
+
                     const tmp = document.createElement('div');
                     tmp.appendChild(clone);
                     botContent += tmp.innerHTML;
                 });
-                
+
                 botContent += `<div class="playlist-controls"><button class="playlist-btn" onclick="createPlaylist(this)">Create Spotify Playlist</button></div>`;
                 botContent += `</div>`;
             }
 
-            appendMessage('bot', botContent, true);
-            
+            appendMessage('bot', botContent, true, mood);
+
         } catch (err) {
             hideTyping();
             appendMessage('bot', `<span class="error-text">Network error occurred.</span>`, true);
             console.error(err);
         }
-        
+
         sendBtn.disabled = false;
         userInput.focus();
     });
