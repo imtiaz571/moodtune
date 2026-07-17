@@ -1,42 +1,12 @@
-/* ═══════════════════════════════════════════════
-   MoodTunes — Pastel Playful UI
-   Inspired by modern event/activity apps
-   ═══════════════════════════════════════════════ */
-
 :root {
-    /* Pastel Color Palette */
-    --bg-cream: #F5F0E8;
-    --bg-yellow: #E8DC5C;
-    --bg-yellow-soft: #F2EDBA;
-    --bg-pink: #F2B8D1;
-    --bg-pink-soft: #F8D7E8;
-    --bg-green: #A8C686;
-    --bg-green-soft: #D1E4BC;
-    --bg-lavender: #C5C3E8;
-    --bg-lavender-soft: #E0DEF5;
-    --bg-blue-soft: #B8D4E8;
-    --bg-peach: #F5C9A8;
-
-    /* Text */
-    --text-dark: #1A1A1A;
-    --text-medium: #4A4A4A;
-    --text-dim: #8A8A8A;
-    --text-white: #FFFFFF;
-
-    /* Accent */
-    --accent-black: #1A1A1A;
+    --bg-dark: #121212;
+    --bg-surface: #1E1E1E;
+    --bg-surface-light: #282828;
+    --text-main: #FFFFFF;
+    --text-dim: #B3B3B3;
     --spotify-green: #1DB954;
     --spotify-green-hover: #1ed760;
-
-    /* Typography */
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-serif: 'DM Serif Display', Georgia, serif;
-
-    /* Spacing & Radius */
-    --radius-sm: 12px;
-    --radius-md: 20px;
-    --radius-lg: 28px;
-    --radius-pill: 50px;
+    --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -46,184 +16,98 @@
 }
 
 body {
-    background-color: var(--bg-cream);
-    color: var(--text-dark);
-    font-family: var(--font-sans);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-stack);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
-    position: relative;
 }
 
-/* ─── Decorative Background Blobs ─── */
-.bg-blob {
-    position: fixed;
-    border-radius: 50%;
-    opacity: 0.5;
-    z-index: 0;
-    animation: blobFloat 12s ease-in-out infinite;
-}
-
-.blob-1 {
-    width: 300px;
-    height: 300px;
-    background: var(--bg-pink-soft);
-    top: -80px;
-    right: -60px;
-    animation-delay: 0s;
-}
-
-.blob-2 {
-    width: 250px;
-    height: 250px;
-    background: var(--bg-green-soft);
-    bottom: -50px;
-    left: -80px;
-    animation-delay: -4s;
-}
-
-.blob-3 {
-    width: 200px;
-    height: 200px;
-    background: var(--bg-lavender-soft);
-    top: 50%;
-    right: -100px;
-    animation-delay: -8s;
-}
-
-@keyframes blobFloat {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(20px, -15px) scale(1.05); }
-    66% { transform: translate(-10px, 10px) scale(0.95); }
-}
-
-/* ─── App Container ─── */
-.app-container {
+.chat-container {
     width: 100%;
-    max-width: 520px;
+    max-width: 800px;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background-color: var(--bg-dark);
     position: relative;
-    z-index: 1;
 }
 
 @media (min-width: 768px) {
-    .app-container {
-        height: 92vh;
-        border-radius: var(--radius-lg);
-        box-shadow:
-            0 20px 60px rgba(0, 0, 0, 0.08),
-            0 1px 3px rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.7);
+    .chat-container {
+        height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        border: 1px solid var(--bg-surface-light);
     }
 }
 
-/* ─── Header ─── */
-.app-header {
-    padding: 16px 20px;
+.chat-header {
+    background-color: var(--bg-surface);
+    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid var(--bg-surface-light);
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo-icon {
-    width: 44px;
-    height: 44px;
-    background: var(--bg-yellow);
-    border-radius: var(--radius-sm);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.4rem;
-}
-
-.header-text h1 {
-    font-family: var(--font-serif);
-    font-size: 1.4rem;
-    font-weight: 400;
-    color: var(--text-dark);
-    letter-spacing: -0.3px;
-}
-
-.header-text p {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    margin-top: 1px;
-}
-
-.header-text p em {
-    font-family: var(--font-serif);
-    font-style: italic;
-    color: var(--text-medium);
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-}
-
-/* Auth buttons */
-.auth-btn {
-    background-color: var(--accent-black);
-    color: var(--text-white);
-    border: none;
-    padding: 8px 18px;
-    border-radius: var(--radius-pill);
+.header-content h1 {
+    font-size: 1.5rem;
     font-weight: 600;
-    font-size: 0.8rem;
+    color: var(--spotify-green);
+    margin-bottom: 4px;
+}
+
+.header-content p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+.auth-btn, .playlist-btn {
+    background-color: var(--spotify-green);
+    color: var(--bg-dark);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
     text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--font-sans);
+    display: inline-block;
 }
 
-.auth-btn:hover {
-    transform: scale(1.03);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.auth-btn:hover, .playlist-btn:hover {
+    background-color: var(--spotify-green-hover);
+    transform: scale(1.05);
 }
 
-/* ─── Chat Area ─── */
 .chat-box {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
     scroll-behavior: smooth;
 }
 
 .chat-box::-webkit-scrollbar {
-    width: 4px;
+    width: 8px;
 }
-
 .chat-box::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--bg-surface-light);
     border-radius: 4px;
 }
 
-/* ─── Messages ─── */
 .message {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    max-width: 90%;
+    align-items: flex-end;
+    gap: 12px;
+    max-width: 85%;
 }
 
 .bot-message {
@@ -236,74 +120,52 @@ body {
 }
 
 .avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: var(--radius-sm);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    background-color: var(--bg-surface-light);
     flex-shrink: 0;
 }
 
 .bot-avatar {
-    background: var(--bg-yellow-soft);
+    background-color: var(--bg-surface-light);
 }
 
 .user-avatar {
-    background: var(--bg-pink);
-    color: var(--text-dark);
-    font-weight: 600;
-    font-size: 0.85rem;
+    background-color: var(--spotify-green);
+    color: var(--bg-dark);
 }
 
 .bubble {
-    padding: 14px 18px;
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    line-height: 1.55;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.5;
     word-wrap: break-word;
 }
 
 .bot-message .bubble {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    color: var(--text-dark);
-    border-bottom-left-radius: 6px;
+    background-color: var(--bg-surface);
+    border-bottom-left-radius: 4px;
+    color: var(--text-main);
 }
 
 .user-message .bubble {
-    background: var(--accent-black);
-    color: var(--text-white);
-    border-bottom-right-radius: 6px;
+    background-color: var(--spotify-green);
+    color: var(--bg-dark);
+    border-bottom-right-radius: 4px;
     font-weight: 500;
 }
 
-/* Greeting message (first message, big text) */
-.greeting-big {
-    font-family: var(--font-serif);
-    font-size: 1.6rem;
-    line-height: 1.25;
-    margin-bottom: 8px;
-    color: var(--text-dark);
-}
-
-.greeting-big em {
-    font-style: italic;
-    color: var(--bg-green);
-}
-
-.greeting-sub {
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    line-height: 1.4;
-}
-
-/* ─── Animations ─── */
+/* Animations */
 .fade-in {
-    animation: fadeInSlideUp 0.4s ease forwards;
+    animation: fadeInSlideUp 0.3s ease forwards;
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
 }
 
 @keyframes fadeInSlideUp {
@@ -313,32 +175,30 @@ body {
     }
 }
 
-/* ─── Typing Indicator ─── */
+/* Typing Indicator */
 .typing-indicator {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: flex-end;
+    gap: 12px;
     padding: 0 20px 10px;
 }
-
 .typing-indicator.hidden {
     display: none;
 }
 
 .typing-bubble {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-bottom-left-radius: 6px;
+    background-color: var(--bg-surface);
+    border-bottom-left-radius: 4px;
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 16px 22px;
+    gap: 4px;
+    padding: 16px 20px;
 }
 
 .dot {
-    width: 7px;
-    height: 7px;
-    background-color: var(--bg-green);
+    width: 6px;
+    height: 6px;
+    background-color: var(--text-dim);
     border-radius: 50%;
     animation: typingBounce 1.4s infinite ease-in-out;
 }
@@ -351,35 +211,29 @@ body {
     40% { transform: translateY(-6px); }
 }
 
-/* ─── Input Area ─── */
+/* Input Area */
 .chat-input-area {
-    padding: 14px 20px 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 20px;
+    background-color: var(--bg-surface);
+    border-top: 1px solid var(--bg-surface-light);
 }
 
 #chat-form {
     display: flex;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.85);
-    border: 1.5px solid rgba(0, 0, 0, 0.08);
-    border-radius: var(--radius-pill);
-    padding: 6px 6px 6px 20px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-#chat-form:focus-within {
-    border-color: var(--bg-green);
-    box-shadow: 0 0 0 3px rgba(168, 198, 134, 0.2);
+    gap: 12px;
+    background-color: var(--bg-surface-light);
+    border-radius: 24px;
+    padding: 8px 16px;
 }
 
 #user-input {
     flex: 1;
     background: transparent;
     border: none;
-    color: var(--text-dark);
-    font-size: 0.9rem;
+    color: var(--text-main);
+    font-size: 1rem;
     outline: none;
-    font-family: var(--font-sans);
+    font-family: inherit;
 }
 
 #user-input::placeholder {
@@ -387,37 +241,34 @@ body {
 }
 
 #send-btn {
-    width: 40px;
-    height: 40px;
-    background: var(--accent-black);
+    background: transparent;
     border: none;
-    border-radius: 50%;
-    color: white;
+    color: var(--spotify-green);
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: transform 0.2s, background 0.2s;
-    flex-shrink: 0;
+    transition: transform 0.2s, color 0.2s;
+    padding: 4px;
 }
 
 #send-btn:hover {
-    transform: scale(1.08);
-    background: #333;
+    transform: scale(1.1);
+    color: var(--spotify-green-hover);
 }
 
 #send-btn:disabled {
-    background: var(--text-dim);
+    color: var(--text-dim);
     cursor: not-allowed;
     transform: none;
 }
 
-/* ─── Track Recommendations ─── */
+/* Track Recommendations Wrapper */
 .recommendations-wrapper {
-    margin-top: 14px;
+    margin-top: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     width: 100%;
 }
 
@@ -425,35 +276,32 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 10px;
-    border-radius: var(--radius-md);
-    transition: all 0.25s ease;
+    background-color: rgba(255,255,255,0.05);
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
 }
 
 .track-card:hover {
-    background: rgba(255, 255, 255, 0.95);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    background-color: rgba(255,255,255,0.1);
 }
 
 /* Album Art Wrapper with Preview Overlay */
 .track-art-wrapper {
     position: relative;
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     flex-shrink: 0;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
     overflow: hidden;
 }
 
 .track-img {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--radius-sm);
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
     object-fit: cover;
-    background: var(--bg-lavender-soft);
+    background-color: var(--bg-surface-light);
     display: block;
 }
 
@@ -464,7 +312,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(26, 26, 26, 0.55);
+    background: rgba(0, 0, 0, 0.5);
     border: none;
     cursor: pointer;
     display: flex;
@@ -472,7 +320,7 @@ body {
     align-items: center;
     opacity: 0;
     transition: opacity 0.2s ease;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
     z-index: 2;
 }
 
@@ -480,30 +328,32 @@ body {
     opacity: 1;
 }
 
+/* Always show button when playing */
 .track-card.playing .preview-btn {
     opacity: 1;
-    background: rgba(26, 26, 26, 0.65);
+    background: rgba(0, 0, 0, 0.6);
 }
 
+/* Pulsing glow on playing card */
 .track-card.playing {
-    background: var(--bg-green-soft);
-    border-color: var(--bg-green);
-    animation: playingPulse 2.5s ease-in-out infinite;
+    background-color: rgba(29, 185, 84, 0.1);
+    box-shadow: 0 0 12px rgba(29, 185, 84, 0.2);
+    animation: playingPulse 2s ease-in-out infinite;
 }
 
 @keyframes playingPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(168, 198, 134, 0.2); }
-    50% { box-shadow: 0 0 20px rgba(168, 198, 134, 0.35); }
+    0%, 100% { box-shadow: 0 0 8px rgba(29, 185, 84, 0.15); }
+    50% { box-shadow: 0 0 16px rgba(29, 185, 84, 0.3); }
 }
 
-/* Progress Bar */
+/* Progress Bar at bottom of album art */
 .preview-progress {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     height: 3px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     z-index: 3;
 }
 
@@ -522,15 +372,15 @@ body {
 
 .track-title {
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--text-dark);
+    color: var(--text-main);
 }
 
 .track-artist {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-dim);
     margin-top: 2px;
     white-space: nowrap;
@@ -539,47 +389,21 @@ body {
 }
 
 .track-reason {
-    font-size: 0.7rem;
-    color: var(--bg-green);
-    margin-top: 3px;
+    font-size: 0.75rem;
+    color: var(--spotify-green);
+    margin-top: 4px;
     font-style: italic;
-    font-family: var(--font-serif);
 }
 
 .spotify-link {
     display: flex;
     padding: 8px;
-    opacity: 0.7;
-    transition: all 0.2s;
-    border-radius: 50%;
+    opacity: 0.8;
+    transition: opacity 0.2s;
 }
 
 .spotify-link:hover {
     opacity: 1;
-    background: rgba(29, 185, 84, 0.1);
-}
-
-/* ─── Playlist Controls ─── */
-.playlist-btn {
-    background-color: var(--accent-black);
-    color: var(--text-white);
-    border: none;
-    padding: 10px 22px;
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--font-sans);
-}
-
-.playlist-btn:hover {
-    transform: scale(1.03);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .playlist-controls {
@@ -587,41 +411,21 @@ body {
     text-align: right;
 }
 
-/* ─── Mood Badge ─── */
+.error-text {
+    color: #e74c3c;
+}
+
+/* Mood Badge Pill */
 .mood-badge {
     display: inline-block;
-    padding: 5px 14px;
-    border-radius: var(--radius-pill);
-    font-size: 0.72rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
     font-weight: 600;
-    margin-top: 10px;
+    margin-top: 8px;
     letter-spacing: 0.3px;
     animation: fadeInSlideUp 0.4s ease forwards;
     opacity: 0;
     animation-delay: 0.2s;
 }
 
-/* ─── Error Text ─── */
-.error-text {
-    color: #D64545;
-    font-weight: 500;
-}
-
-/* ─── Responsive ─── */
-@media (max-width: 480px) {
-    .greeting-big {
-        font-size: 1.3rem;
-    }
-
-    .app-header {
-        padding: 12px 16px;
-    }
-
-    .chat-box {
-        padding: 16px;
-    }
-
-    .chat-input-area {
-        padding: 12px 16px 16px;
-    }
-}

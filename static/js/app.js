@@ -79,21 +79,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Mood → visual theme mapping (pastel palette)
+    // Mood → visual theme mapping
     const moodThemes = {
-        happy:      { emoji: '🌻', color: '#E8DC5C', label: 'Happy',       glow: 'rgba(232, 220, 92, 0.2)' },
-        sad:        { emoji: '🌧️', color: '#93A8D6', label: 'Sad',         glow: 'rgba(147, 168, 214, 0.2)' },
-        angry:      { emoji: '🌶️', color: '#E87461', label: 'Angry',       glow: 'rgba(232, 116, 97, 0.2)' },
-        anxious:    { emoji: '🫧', color: '#C5C3E8', label: 'Anxious',     glow: 'rgba(197, 195, 232, 0.2)' },
-        chill:      { emoji: '🍃', color: '#A8C686', label: 'Chill',       glow: 'rgba(168, 198, 134, 0.2)' },
-        romantic:   { emoji: '🌸', color: '#F2B8D1', label: 'Romantic',    glow: 'rgba(242, 184, 209, 0.2)' },
-        energetic:  { emoji: '⚡', color: '#F5C9A8', label: 'Energetic',   glow: 'rgba(245, 201, 168, 0.2)' },
-        melancholic:{ emoji: '🌊', color: '#B8D4E8', label: 'Melancholic', glow: 'rgba(184, 212, 232, 0.2)' },
-        nostalgic:  { emoji: '🌅', color: '#F5C9A8', label: 'Nostalgic',   glow: 'rgba(245, 201, 168, 0.2)' },
-        hopeful:    { emoji: '✨', color: '#D1E4BC', label: 'Hopeful',     glow: 'rgba(209, 228, 188, 0.2)' },
-        lonely:     { emoji: '🌙', color: '#C5C3E8', label: 'Lonely',     glow: 'rgba(197, 195, 232, 0.2)' },
-        confident:  { emoji: '🔥', color: '#E8DC5C', label: 'Confident',   glow: 'rgba(232, 220, 92, 0.2)' },
-        neutral:    { emoji: '🎧', color: '#B0B0B0', label: 'Neutral',     glow: 'rgba(176, 176, 176, 0.1)' },
+        happy:      { emoji: '😄', color: '#FFD700', label: 'Happy',       glow: 'rgba(255, 215, 0, 0.15)' },
+        sad:        { emoji: '😢', color: '#6B8DD6', label: 'Sad',         glow: 'rgba(107, 141, 214, 0.15)' },
+        angry:      { emoji: '🔥', color: '#FF4444', label: 'Angry',       glow: 'rgba(255, 68, 68, 0.15)' },
+        anxious:    { emoji: '😰', color: '#A78BFA', label: 'Anxious',     glow: 'rgba(167, 139, 250, 0.15)' },
+        chill:      { emoji: '😎', color: '#34D399', label: 'Chill',       glow: 'rgba(52, 211, 153, 0.15)' },
+        romantic:   { emoji: '💕', color: '#F472B6', label: 'Romantic',    glow: 'rgba(244, 114, 182, 0.15)' },
+        energetic:  { emoji: '⚡', color: '#FBBF24', label: 'Energetic',   glow: 'rgba(251, 191, 36, 0.15)' },
+        melancholic:{ emoji: '🌧️', color: '#93C5FD', label: 'Melancholic', glow: 'rgba(147, 197, 253, 0.15)' },
+        nostalgic:  { emoji: '🌅', color: '#FCA5A5', label: 'Nostalgic',   glow: 'rgba(252, 165, 165, 0.15)' },
+        hopeful:    { emoji: '✨', color: '#6EE7B7', label: 'Hopeful',     glow: 'rgba(110, 231, 183, 0.15)' },
+        lonely:     { emoji: '🌙', color: '#A5B4FC', label: 'Lonely',     glow: 'rgba(165, 180, 252, 0.15)' },
+        confident:  { emoji: '💪', color: '#F59E0B', label: 'Confident',   glow: 'rgba(245, 158, 11, 0.15)' },
+        neutral:    { emoji: '🤖', color: '#9CA3AF', label: 'Neutral',     glow: 'rgba(156, 163, 175, 0.1)' },
     };
 
     function getMoodTheme(mood) {
@@ -105,9 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (data.logged_in) {
-                spotifyAuthContainer.innerHTML = `<a href="/logout" class="auth-btn" style="background: transparent; border: 1.5px solid var(--text-dim); color: var(--text-medium);">Logout</a>`;
+                spotifyAuthContainer.innerHTML = `<span style="color: var(--text-dim); font-size: 0.85rem; margin-right: 12px;">Logged in to Spotify</span>
+                                                  <a href="/logout" class="auth-btn" style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">Logout</a>`;
             } else {
-                spotifyAuthContainer.innerHTML = `<a href="/login" class="auth-btn">🎵 Connect Spotify</a>`;
+                spotifyAuthContainer.innerHTML = `<a href="/login" class="auth-btn">Connect Spotify</a>`;
             }
         })
         .catch(err => console.error("Error fetching auth status", err));
@@ -146,10 +147,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyMoodGlow(mood) {
         const theme = getMoodTheme(mood);
-        const container = document.querySelector('.app-container');
-        if (!container) return;
+        const container = document.querySelector('.chat-container');
         container.style.transition = 'box-shadow 0.6s ease';
-        container.style.boxShadow = `0 0 50px ${theme.glow}, 0 20px 60px rgba(0,0,0,0.08)`;
+        container.style.boxShadow = `0 0 40px ${theme.glow}, 0 8px 32px rgba(0,0,0,0.5)`;
     }
 
     function scrollToBottom() {
