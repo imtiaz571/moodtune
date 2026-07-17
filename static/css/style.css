@@ -136,11 +136,44 @@ body.chat-mode .input-wrapper {
 }
 
 /* ─── Hero Text ─── */
+.landing-hero {
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+}
+
 .landing-hero h1 {
     font-size: 2.2rem;
     font-weight: 400;
     color: var(--text-main);
     text-align: center;
+    margin: 0;
+}
+
+.preset-chips {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 650px;
+}
+
+.preset-chip {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-dim);
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preset-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 /* ─── Input Bar (Gemini style) ─── */

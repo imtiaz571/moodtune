@@ -208,6 +208,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isFirstMessage = true;
 
+    // Handle preset chips
+    const presetChips = document.querySelectorAll('.preset-chip');
+    presetChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            userInput.value = chip.textContent;
+            chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        });
+    });
+
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
