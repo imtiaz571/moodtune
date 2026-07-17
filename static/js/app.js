@@ -179,19 +179,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (data.success) {
-                btnElement.outerHTML = `<a href="${data.url}" target="_blank" class="playlist-btn" style="background: var(--spotify-green);">Open Playlist 🎵</a>`;
+                btnElement.outerHTML = `<a href="${data.url}" target="_blank" class="playlist-btn" style="background: var(--spotify-green);">Playing on Spotify 🎵</a>`;
+                window.open(data.url, '_blank');
             } else {
                 if (data.error === "not_logged_in") {
                     btnElement.textContent = "Login to Spotify first!";
                 } else {
                     btnElement.textContent = "Failed to create";
                 }
-                setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Create Spotify Playlist"; }, 3000);
+                setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Listen on Spotify"; }, 3000);
             }
         } catch (e) {
             console.error(e);
             btnElement.textContent = "Error";
-            setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Create Spotify Playlist"; }, 3000);
+            setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Listen on Spotify"; }, 3000);
         }
     };
 
@@ -291,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     botContent += tmp.innerHTML;
                 });
 
-                botContent += `<div class="playlist-controls"><button class="playlist-btn" onclick="createPlaylist(this)">Create Spotify Playlist</button></div>`;
+                botContent += `<div class="playlist-controls"><button class="playlist-btn" onclick="createPlaylist(this)">Listen on Spotify 🎧</button></div>`;
                 botContent += `</div>`;
             }
 
