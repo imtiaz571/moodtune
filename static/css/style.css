@@ -286,12 +286,83 @@ body {
     background-color: rgba(255,255,255,0.1);
 }
 
+/* Album Art Wrapper with Preview Overlay */
+.track-art-wrapper {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
 .track-img {
-    width: 48px;
-    height: 48px;
-    border-radius: 4px;
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
     object-fit: cover;
     background-color: var(--bg-surface-light);
+    display: block;
+}
+
+/* Play/Pause Button Overlay */
+.preview-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    border-radius: 6px;
+    z-index: 2;
+}
+
+.track-art-wrapper:hover .preview-btn {
+    opacity: 1;
+}
+
+/* Always show button when playing */
+.track-card.playing .preview-btn {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+/* Pulsing glow on playing card */
+.track-card.playing {
+    background-color: rgba(29, 185, 84, 0.1);
+    box-shadow: 0 0 12px rgba(29, 185, 84, 0.2);
+    animation: playingPulse 2s ease-in-out infinite;
+}
+
+@keyframes playingPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(29, 185, 84, 0.15); }
+    50% { box-shadow: 0 0 16px rgba(29, 185, 84, 0.3); }
+}
+
+/* Progress Bar at bottom of album art */
+.preview-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    z-index: 3;
+}
+
+.preview-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--spotify-green);
+    border-radius: 0 2px 2px 0;
+    transition: width 0.05s linear;
 }
 
 .track-info {

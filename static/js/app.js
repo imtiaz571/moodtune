@@ -6,6 +6,79 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('send-btn');
     const spotifyAuthContainer = document.getElementById('spotify-auth-container');
 
+    // ─── Audio Preview Player (Instagram-style) ───
+    let currentAudio = null;
+    let currentCard = null;
+    let progressInterval = null;
+
+    function stopCurrentPreview() {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+        }
+        if (currentCard) {
+            currentCard.classList.remove('playing');
+            const playIcon = currentCard.querySelector('.play-icon');
+            const pauseIcon = currentCard.querySelector('.pause-icon');
+            if (playIcon) playIcon.style.display = '';
+            if (pauseIcon) pauseIcon.style.display = 'none';
+            const bar = currentCard.querySelector('.preview-progress-bar');
+            if (bar) bar.style.width = '0%';
+            currentCard = null;
+        }
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+    }
+
+    window.togglePreview = function(btnElement) {
+        const card = btnElement.closest('.track-card');
+        const previewUrl = card.dataset.previewUrl;
+        if (!previewUrl) return;
+
+        // If clicking the same card that's playing → pause it
+        if (currentCard === card && currentAudio && !currentAudio.paused) {
+            stopCurrentPreview();
+            return;
+        }
+
+        // Stop any existing preview
+        stopCurrentPreview();
+
+        // Start new preview
+        const audio = new Audio(previewUrl);
+        currentAudio = audio;
+        currentCard = card;
+
+        card.classList.add('playing');
+        const playIcon = card.querySelector('.play-icon');
+        const pauseIcon = card.querySelector('.pause-icon');
+        if (playIcon) playIcon.style.display = 'none';
+        if (pauseIcon) pauseIcon.style.display = '';
+
+        const bar = card.querySelector('.preview-progress-bar');
+
+        audio.play().catch(err => {
+            console.error('Preview playback error:', err);
+            stopCurrentPreview();
+        });
+
+        // Update progress bar
+        progressInterval = setInterval(() => {
+            if (audio.duration && bar) {
+                const pct = (audio.currentTime / audio.duration) * 100;
+                bar.style.width = pct + '%';
+            }
+        }, 50);
+
+        // When preview ends
+        audio.addEventListener('ended', () => {
+            stopCurrentPreview();
+        });
+    };
+
     // Mood → visual theme mapping
     const moodThemes = {
         happy:      { emoji: '😄', color: '#FFD700', label: 'Happy',       glow: 'rgba(255, 215, 0, 0.15)' },
@@ -186,6 +259,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         card.style.opacity = '0.6';
                     }
 
+                    // Store preview URL as data attribute
+                    if (track.preview_url) {
+                        card.dataset.previewUrl = track.preview_url;
+                        const previewBtn = clone.querySelector('.preview-btn');
+                        if (previewBtn) {
+                            previewBtn.style.display = '';
+                            previewBtn.setAttribute('onclick', 'togglePreview(this)');
+                        }
+                    }
+
                     clone.querySelector('.track-title').textContent = track.title;
                     clone.querySelector('.track-artist').textContent = track.artist;
                     clone.querySelector('.track-reason').textContent = track.reason;
@@ -198,16 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         clone.querySelector('.spotify-link').href = track.spotify_url;
                     } else {
                         clone.querySelector('.spotify-link').style.display = 'none';
-                    }
-
-                    const audioEl = clone.querySelector('.track-preview');
-                    if (audioEl) {
-                        if (track.preview_url) {
-                            audioEl.src = track.preview_url;
-                            audioEl.style.display = 'block';
-                        } else {
-                            audioEl.style.display = 'none';
-                        }
                     }
 
                     const tmp = document.createElement('div');
