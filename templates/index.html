@@ -8,13 +8,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="landing-mode">
+    <header class="app-header">
+        <a href="/" class="logo" style="text-decoration: none;">MoodTunes</a>
+        <div id="spotify-auth-container">
+            <!-- Will be populated by JS -->
+        </div>
+    </header>
     <div class="app-layout">
-        <header class="app-header">
-            <a href="/" class="logo" style="text-decoration: none;">MoodTunes</a>
-            <div id="spotify-auth-container">
-                <!-- Will be populated by JS -->
-            </div>
-        </header>
 
         <main class="main-content">
             <div class="landing-hero" id="landing-hero">
