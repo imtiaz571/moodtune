@@ -86,29 +86,6 @@
         </div>
     </template>
 
-    <!-- User Profile Onboarding Modal -->
-    <div id="onboarding-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h2>Welcome to MoodTunes! 🎵</h2>
-            <p>Let's personalize your experience. Tell us a bit about yourself so we can recommend the best music for you.</p>
-            <form id="onboarding-form">
-                <div class="form-group">
-                    <label for="user-age">Age (Optional)</label>
-                    <input type="number" id="user-age" placeholder="e.g., 25" min="1" max="120">
-                </div>
-                <div class="form-group">
-                    <label for="user-language">Preferred Language</label>
-                    <input type="text" id="user-language" placeholder="e.g., English, Spanish, Korean" value="English">
-                </div>
-                <div class="form-group">
-                    <label for="user-taste">Music Taste & Favorite Genres</label>
-                    <textarea id="user-taste" placeholder="e.g., I love 80s Rock, Indie Pop, and Classical piano." rows="3"></textarea>
-                </div>
-                <button type="submit" class="save-profile-btn">Start Listening</button>
-            </form>
-        </div>
-    </div>
-
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

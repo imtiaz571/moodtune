@@ -141,16 +141,13 @@ class GeminiService:
             "based on the user's emotional state."
         )
 
-        if user_profile:
+        if len(self.history) == 0:
             system_instruction += (
-                f"\n\nUSER PROFILE:\n"
-                f"The user has provided the following profile information:\n"
-                f"- Age: {user_profile.get('age', 'Unknown')}\n"
-                f"- Preferred Language: {user_profile.get('language', 'English')}\n"
-                f"- Music Taste/Genres: {user_profile.get('taste', 'General')}\n\n"
-                f"CRITICAL INSTRUCTION: You MUST use this profile to highly personalize your song recommendations "
-                f"and conversational tone. Ensure your song choices align with their stated taste and age demographic, "
-                f"and reply in their preferred language if specified."
+                "\n\nCRITICAL INSTRUCTION FOR FIRST MESSAGE:\n"
+                "This is the user's very first message. Before giving any song recommendations, "
+                "you MUST warmly greet them, acknowledge their mood, and ask them for their "
+                "Age, Preferred Language, and Music Taste. Tell them you need this to personalize "
+                "their experience. DO NOT provide song recommendations in this first reply."
             )
 
         # Build contents with history

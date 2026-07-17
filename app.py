@@ -48,14 +48,13 @@ def auth_status():
 def chat():
     data = request.json
     user_message = data.get("message")
-    user_profile = data.get("profile", None)
     
     if not user_message:
         return jsonify({"error": "Empty message"}), 400
         
     try:
         # Get structured output from Gemini
-        mood_response = gemini_service.get_mood_recommendation(user_message, user_profile)
+        mood_response = gemini_service.get_mood_recommendation(user_message)
         
         if not mood_response:
             return jsonify({"error": "Failed to get response from Gemini"}), 500
