@@ -119,10 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const theme = getMoodTheme(mood);
 
-        const avatar = document.createElement('div');
-        avatar.className = `avatar ${sender}-avatar`;
-        avatar.textContent = sender === 'bot' ? theme.emoji : 'U';
-
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
 
@@ -137,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
             bubble.textContent = text;
         }
 
-        msgDiv.appendChild(avatar);
         msgDiv.appendChild(bubble);
 
         chatBox.appendChild(msgDiv);
