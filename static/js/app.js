@@ -100,15 +100,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return moodThemes[(mood || '').toLowerCase()] || moodThemes.neutral;
     }
 
+    let isSpotifyLoggedIn = false;
+
     // Check Spotify Auth Status
     fetch('/api/auth_status')
         .then(res => res.json())
         .then(data => {
+            isSpotifyLoggedIn = data.logged_in;
             if (data.logged_in) {
                 spotifyAuthContainer.innerHTML = `<span style="color: var(--text-dim); font-size: 0.85rem; margin-right: 12px;">Logged in to Spotify</span>
                                                   <a href="/logout" class="auth-btn" style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">Logout</a>`;
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.placeholder = "";
             } else {
                 spotifyAuthContainer.innerHTML = `<a href="/login" class="auth-btn">Connect Spotify</a>`;
+                userInput.disabled = true;
+                sendBtn.disabled = true;
+                userInput.placeholder = "Please connect Spotify to start chatting...";
             }
         })
         .catch(err => console.error("Error fetching auth status", err));
@@ -201,6 +210,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        if (!isSpotifyLoggedIn) {
+            alert("Please connect your Spotify account first to start chatting!");
+            return;
+        }
+
         const text = userInput.value.trim();
         if (!text) return;
 
