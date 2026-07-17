@@ -7,26 +7,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="landing-mode">
-    <canvas id="glcanvas"></canvas>
-    
-    <header class="app-header">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <button id="mobile-menu-btn" class="icon-btn mobile-only" title="Menu">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-            <a href="/" class="logo" style="text-decoration: none;">MoodTunes</a>
-        </div>
-        <div id="spotify-auth-container">
-            <!-- Will be populated by JS -->
-        </div>
-    </header>
     <div class="app-layout">
         <aside class="sidebar" id="sidebar">
+            <div style="display: flex; align-items: center; gap: 16px; padding-bottom: 20px;">
+                <button id="mobile-menu-btn" class="icon-btn mobile-only" title="Menu">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <a href="/" class="logo" style="text-decoration: none;">MoodTunes</a>
+            </div>
+            
             <button id="new-chat-btn" class="new-chat-btn">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -40,7 +33,21 @@
             </ul>
         </aside>
 
-        <main class="main-content">
+        <div class="main-wrapper">
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="mobile-menu-btn-main" class="icon-btn mobile-only" title="Menu">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div id="spotify-auth-container">
+                    <!-- Will be populated by JS -->
+                </div>
+            </header>
             <div class="landing-hero" id="landing-hero">
                 <h1>Your Perfect Music Finding companion!</h1>
             </div>
@@ -80,6 +87,7 @@
                 </form>
             </div>
         </main>
+        </div>
     </div>
     
     <!-- Template for track cards (hidden) -->

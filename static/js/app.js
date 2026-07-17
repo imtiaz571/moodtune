@@ -243,11 +243,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const newChatBtn = document.getElementById('new-chat-btn');
     if (newChatBtn) newChatBtn.addEventListener('click', startNewChat);
 
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenuBtns = document.querySelectorAll('.mobile-only[title="Menu"]');
     const sidebar = document.getElementById('sidebar');
-    if (mobileMenuBtn && sidebar) {
-        mobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
+    if (sidebar) {
+        mobileMenuBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
         });
     }
 
