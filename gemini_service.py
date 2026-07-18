@@ -15,6 +15,7 @@ class TrackRecommendation(BaseModel):
 
 class MoodResponse(BaseModel):
     chat_title: str = Field(
+        default="New Chat",
         description="A short, catchy title for this chat based on the user's demand (e.g. 'Chill Pop Mix', 'Relax Moody Mix', 'Bangla Classic Mix'). Maximum 4 words."
     )
     detected_mood: str = Field(
