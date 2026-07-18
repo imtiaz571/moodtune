@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import os
 import json
+from datetime import timedelta
 from dotenv import load_dotenv
 from gemini_service import GeminiService
 from spotify_service import SpotifyService
@@ -12,6 +13,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")
+app.permanent_session_lifetime = timedelta(days=30)
 
 gemini_service = GeminiService()
 spotify_service = SpotifyService()
@@ -75,6 +77,7 @@ def callback():
     code = request.args.get('code')
     try:
         token_info = sp_oauth.get_access_token(code)
+        session.permanent = True
         session["token_info"] = token_info
     except Exception as e:
         print("Error getting token:", e)
