@@ -386,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 user_message: text,
                 reply: data.reply,
                 mood: data.mood,
+                chat_title: data.chat_title,
                 tracks: data.tracks,
                 timestamp: new Date().toISOString()
             });
@@ -523,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return {
                     id,
                     chats,
-                    title: firstChat ? firstChat.user_message : 'New Chat',
+                    title: firstChat ? (firstChat.chat_title || firstChat.user_message) : 'New Chat',
                     mood: firstChat ? firstChat.mood : 'neutral',
                     timestamp: firstChat ? firstChat.timestamp : null
                 };

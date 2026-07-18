@@ -14,6 +14,9 @@ class TrackRecommendation(BaseModel):
     reason: str = Field(description="A one-line reason why this track matches the mood")
 
 class MoodResponse(BaseModel):
+    chat_title: str = Field(
+        description="A short, catchy title for this chat based on the user's demand (e.g. 'Chill Pop Mix', 'Relax Moody Mix', 'Bangla Classic Mix'). Maximum 4 words."
+    )
     detected_mood: str = Field(
         description=(
             "The mood you detected from the user's message. Must be one of: "

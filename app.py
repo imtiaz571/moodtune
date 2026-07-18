@@ -151,6 +151,7 @@ def chat():
         response_data = {
             "reply": mood_response.reply,
             "mood": mood_response.detected_mood,
+            "chat_title": mood_response.chat_title,
             "tracks": tracks
         }
         
@@ -164,6 +165,7 @@ def chat():
                     "user_message": user_message,
                     "reply": response_data["reply"],
                     "mood": response_data["mood"],
+                    "chat_title": response_data["chat_title"],
                     "tracks": response_data["tracks"],
                     "timestamp": firestore.SERVER_TIMESTAMP
                 }
