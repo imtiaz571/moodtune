@@ -116,26 +116,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let isSpotifyLoggedIn = false;
+    let firebaseIdToken = null;
 
-    // Check Spotify Auth Status
-    fetch('/api/auth_status')
-        .then(res => res.json())
-        .then(data => {
-            isSpotifyLoggedIn = data.logged_in;
-            if (data.logged_in) {
-                spotifyAuthContainer.innerHTML = `<span style="color: var(--text-dim); font-size: 0.85rem; margin-right: 12px;">Logged in to Spotify</span>
-                                                  <a href="/logout" class="auth-btn" style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">Logout</a>`;
+    // --- Firebase Auth Setup ---
+    if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey) {
+        firebase.initializeApp(window.FIREBASE_CONFIG);
+    }
+    
+    if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+        const auth = firebase.auth();
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        
+        const firebaseLoginBtn = document.getElementById('firebase-login-btn');
+        const firebaseLogoutBtn = document.getElementById('firebase-logout-btn');
+        
+        if (firebaseLoginBtn) {
+            firebaseLoginBtn.addEventListener('click', () => auth.signInWithPopup(googleProvider));
+        }
+        if (firebaseLogoutBtn) {
+            firebaseLogoutBtn.addEventListener('click', () => auth.signOut());
+        }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                firebaseIdToken = await user.getIdToken();
+                if (firebaseLoginBtn) firebaseLoginBtn.style.display = 'none';
+                if (firebaseLogoutBtn) firebaseLogoutBtn.style.display = 'block';
+                if (spotifyAuthContainer) spotifyAuthContainer.style.display = 'block';
+                
                 userInput.disabled = false;
                 sendBtn.disabled = false;
-                userInput.placeholder = "";
+                userInput.placeholder = "Message MoodTunes...";
+                
+                checkSpotifyAuth();
+                fetchHistory();
             } else {
-                spotifyAuthContainer.innerHTML = `<a href="/login" class="auth-btn">Connect Spotify</a>`;
+                firebaseIdToken = null;
+                if (firebaseLoginBtn) firebaseLoginBtn.style.display = 'block';
+                if (firebaseLogoutBtn) firebaseLogoutBtn.style.display = 'none';
+                if (spotifyAuthContainer) spotifyAuthContainer.style.display = 'none';
+                
                 userInput.disabled = true;
                 sendBtn.disabled = true;
-                userInput.placeholder = "Please connect Spotify to start chatting...";
+                userInput.placeholder = "Please sign in to start chatting...";
             }
-        })
-        .catch(err => console.error("Error fetching auth status", err));
+        });
+    }
+
+    function checkSpotifyAuth() {
+        fetch('/api/auth_status')
+            .then(res => res.json())
+            .then(data => {
+                isSpotifyLoggedIn = data.logged_in;
+                if (data.logged_in) {
+                    spotifyAuthContainer.innerHTML = `<span style="color: var(--text-dim); font-size: 0.85rem; margin-right: 12px;">Spotify Connected</span>
+                                                      <a href="/logout" class="auth-btn" style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">Disconnect</a>`;
+                } else {
+                    spotifyAuthContainer.innerHTML = `<a href="/login" class="auth-btn">Connect Spotify</a>`;
+                }
+            })
+            .catch(err => console.error("Error fetching auth status", err));
+    }
 
     function appendMessage(sender, text, isHtml = false, mood = null) {
         const msgDiv = document.createElement('div');
@@ -259,9 +300,12 @@ document.addEventListener('DOMContentLoaded', () => {
         showTyping();
 
         try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (firebaseIdToken) headers['Authorization'] = `Bearer ${firebaseIdToken}`;
+            
             const res = await fetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify({ message: text })
             });
 
@@ -275,81 +319,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const mood = data.mood || 'neutral';
-            const theme = getMoodTheme(mood);
-
-            // Apply mood glow to container
             applyMoodGlow(mood);
 
-            // Build bot message content with mood badge
-            let botContent = `<p>${data.reply}</p>`;
-
-            // Add a mood badge pill
-            if (mood !== 'neutral') {
-                botContent += `<span class="mood-badge" style="background: ${theme.color}22; color: ${theme.color}; border: 1px solid ${theme.color}44;">${theme.emoji} ${theme.label}</span>`;
-            }
-
-            // If recommendations exist, append them
-            if (data.tracks && data.tracks.length > 0) {
-                botContent += `<div class="recommendations-wrapper">`;
-                const template = document.getElementById('track-card-template');
-
-                data.tracks.forEach(track => {
-                    const clone = template.content.cloneNode(true);
-                    const card = clone.querySelector('.track-card');
-
-                    if (track.uri) {
-                        card.dataset.uri = track.uri;
-                    } else {
-                        card.style.opacity = '0.6';
-                    }
-
-                    // Store preview URL as data attribute
-                    if (track.preview_url) {
-                        card.dataset.previewUrl = track.preview_url;
-                        const previewBtn = clone.querySelector('.preview-btn');
-                        if (previewBtn) {
-                            previewBtn.style.display = '';
-                            previewBtn.setAttribute('onclick', 'togglePreview(this)');
-                        }
-                    }
-
-                    clone.querySelector('.track-title').textContent = track.title;
-                    clone.querySelector('.track-artist').textContent = track.artist;
-                    clone.querySelector('.track-reason').textContent = track.reason;
-
-                    if (track.image_url) {
-                        clone.querySelector('.track-img').src = track.image_url;
-                    }
-
-                    if (track.spotify_url) {
-                        clone.querySelector('.spotify-link').href = track.spotify_url;
-                    } else {
-                        clone.querySelector('.spotify-link').style.display = 'none';
-                    }
-
-                    const tmp = document.createElement('div');
-                    tmp.appendChild(clone);
-                    botContent += tmp.innerHTML;
-                });
-
-                let controlsHtml = `<div class="playlist-controls" style="display: flex; gap: 10px;">`;
-                
-                const playableTrack = data.tracks.find(t => t.spotify_url);
-                if (playableTrack) {
-                    controlsHtml += `<a href="${playableTrack.spotify_url}" target="_blank" class="playlist-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Listen on Spotify 🎧</a>`;
-                }
-                
-                const hasUris = data.tracks.some(t => t.uri);
-                if (hasUris) {
-                    controlsHtml += `<button class="playlist-btn secondary" onclick="createPlaylist(this)">Save as Playlist 📝</button>`;
-                }
-                
-                controlsHtml += `</div>`;
-                botContent += controlsHtml;
-                botContent += `</div>`;
-            }
-
-            appendMessage('bot', botContent, true, mood);
+            const botContent = buildBotContentHTML(data);
+            const msgDiv = appendMessage('bot', botContent, true, mood);
+            
+            bindPlaylistButton(msgDiv, data);
 
         } catch (err) {
             hideTyping();
@@ -360,4 +335,126 @@ document.addEventListener('DOMContentLoaded', () => {
         sendBtn.disabled = false;
         userInput.focus();
     });
+
+    // --- Render Bot Message Function ---
+    function buildBotContentHTML(data) {
+        const mood = data.mood || 'neutral';
+        const theme = getMoodTheme(mood);
+        let botContent = `<p>${data.reply}</p>`;
+
+        if (mood !== 'neutral') {
+            botContent += `<span class="mood-badge" style="background: ${theme.color}22; color: ${theme.color}; border: 1px solid ${theme.color}44;">${theme.emoji} ${theme.label}</span>`;
+        }
+
+        if (data.tracks && data.tracks.length > 0) {
+            botContent += `<div class="recommendations-wrapper">`;
+            const template = document.getElementById('track-card-template');
+
+            data.tracks.forEach(track => {
+                const clone = template.content.cloneNode(true);
+                const card = clone.querySelector('.track-card');
+                if (track.uri) card.dataset.uri = track.uri;
+                else card.style.opacity = '0.6';
+                if (track.preview_url) {
+                    card.dataset.previewUrl = track.preview_url;
+                    const previewBtn = clone.querySelector('.preview-btn');
+                    if (previewBtn) {
+                        previewBtn.style.display = '';
+                        previewBtn.setAttribute('onclick', 'togglePreview(this)');
+                    }
+                }
+                clone.querySelector('.track-title').textContent = track.title;
+                clone.querySelector('.track-artist').textContent = track.artist;
+                clone.querySelector('.track-reason').textContent = track.reason;
+                if (track.image_url) clone.querySelector('.track-img').src = track.image_url;
+                if (track.spotify_url) clone.querySelector('.spotify-link').href = track.spotify_url;
+                else clone.querySelector('.spotify-link').style.display = 'none';
+
+                const tmp = document.createElement('div');
+                tmp.appendChild(clone);
+                botContent += tmp.innerHTML;
+            });
+
+            let controlsHtml = `<div class="playlist-controls" style="display: flex; gap: 10px;">`;
+            const playableTrack = data.tracks.find(t => t.spotify_url);
+            if (playableTrack) {
+                controlsHtml += `<a href="${playableTrack.spotify_url}" target="_blank" class="playlist-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Listen on Spotify 🎧</a>`;
+            }
+            if (isSpotifyLoggedIn && data.tracks.some(t => t.uri)) {
+                controlsHtml += `<button class="playlist-btn create-playlist-btn">Create Spotify Playlist 🎵</button>`;
+            }
+            controlsHtml += `</div>`;
+            botContent += controlsHtml;
+            botContent += `</div>`;
+        }
+        return botContent;
+    }
+
+    function bindPlaylistButton(msgDiv, data) {
+        const createBtn = msgDiv.querySelector('.create-playlist-btn');
+        if (createBtn) {
+            createBtn.addEventListener('click', async () => {
+                createBtn.textContent = 'Creating...';
+                createBtn.disabled = true;
+
+                const uris = data.tracks.filter(t => t.uri).map(t => t.uri);
+                const headers = { 'Content-Type': 'application/json' };
+                if (firebaseIdToken) headers['Authorization'] = `Bearer ${firebaseIdToken}`;
+
+                try {
+                    const pres = await fetch('/api/create_playlist', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({ uris })
+                    });
+                    const pdata = await pres.json();
+                    if (pdata.success) {
+                        createBtn.textContent = 'Playlist Created! 🎉';
+                        createBtn.style.background = 'var(--spotify-green)';
+                        createBtn.style.color = '#000';
+                        setTimeout(() => window.open(pdata.url, '_blank'), 500);
+                    } else {
+                        if (pdata.error === "not_logged_in") {
+                            alert("Your Spotify session expired. Please connect Spotify again.");
+                            window.location.href = "/login";
+                        } else {
+                            createBtn.textContent = 'Failed';
+                            console.error(pdata.error);
+                        }
+                    }
+                } catch(e) {
+                    createBtn.textContent = 'Error';
+                    console.error(e);
+                }
+            });
+        }
+    }
+
+    async function fetchHistory() {
+        if (!firebaseIdToken) return;
+        try {
+            const res = await fetch('/api/history', {
+                headers: { 'Authorization': `Bearer ${firebaseIdToken}` }
+            });
+            const data = await res.json();
+            if (data.history && data.history.length > 0) {
+                document.body.classList.remove('landing-mode');
+                document.body.classList.add('chat-mode');
+                document.getElementById('chat-area').classList.remove('hidden');
+                isFirstMessage = false;
+                
+                chatBox.innerHTML = '';
+                chatBox.appendChild(typingIndicator);
+                
+                data.history.forEach(chat => {
+                    appendMessage('user', chat.user_message);
+                    const html = buildBotContentHTML(chat);
+                    const msgDiv = appendMessage('bot', html, true, chat.mood || 'neutral');
+                    bindPlaylistButton(msgDiv, chat);
+                });
+            }
+        } catch(e) {
+            console.error("Failed to load history", e);
+        }
+    }
 });

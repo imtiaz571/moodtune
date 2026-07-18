@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import os
+import json
 from dotenv import load_dotenv
 from gemini_service import GeminiService
 from spotify_service import SpotifyService
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
+from functools import wraps
 
 load_dotenv()
 
@@ -12,9 +16,50 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")
 gemini_service = GeminiService()
 spotify_service = SpotifyService()
 
+# Initialize Firebase Admin
+firebase_creds_json = os.getenv("FIREBASE_ADMIN_CREDENTIALS_JSON")
+db = None
+if firebase_creds_json:
+    try:
+        cred_dict = json.loads(firebase_creds_json)
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
+        print("Firebase Admin initialized successfully.")
+    except Exception as e:
+        print(f"Failed to initialize Firebase Admin: {e}")
+else:
+    print("FIREBASE_ADMIN_CREDENTIALS_JSON not found. Firebase not initialized.")
+
+def verify_firebase_token(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'Unauthorized'}), 401
+        
+        id_token = auth_header.split('Bearer ')[1]
+        try:
+            decoded_token = auth.verify_id_token(id_token)
+            request.user = decoded_token
+        except Exception as e:
+            print(f"Token verification failed: {e}")
+            return jsonify({'error': 'Invalid token'}), 401
+            
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route("/")
 def index():
-    return render_template("index.html")
+    firebase_config = {
+        "apiKey": os.getenv("FIREBASE_API_KEY", ""),
+        "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN", ""),
+        "projectId": os.getenv("FIREBASE_PROJECT_ID", ""),
+        "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET", ""),
+        "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID", ""),
+        "appId": os.getenv("FIREBASE_APP_ID", "")
+    }
+    return render_template("index.html", firebase_config=firebase_config)
 
 @app.route("/login")
 def login():
@@ -45,6 +90,7 @@ def auth_status():
     return jsonify({"logged_in": token_info is not None})
 
 @app.route("/api/chat", methods=["POST"])
+@verify_firebase_token
 def chat():
     data = request.json
     user_message = data.get("message")
@@ -98,14 +144,51 @@ def chat():
                         
                 tracks.append(track_data)
             
-        return jsonify({
+        response_data = {
             "reply": mood_response.reply,
             "mood": mood_response.detected_mood,
             "tracks": tracks
-        })
+        }
+        
+        # Save to Firestore
+        if db:
+            try:
+                uid = request.user.get('uid')
+                chat_doc = {
+                    "user_message": user_message,
+                    "reply": response_data["reply"],
+                    "mood": response_data["mood"],
+                    "tracks": response_data["tracks"],
+                    "timestamp": firestore.SERVER_TIMESTAMP
+                }
+                db.collection('users').document(uid).collection('chats').add(chat_doc)
+            except Exception as e:
+                print(f"Failed to save chat to Firestore: {e}")
+                
+        return jsonify(response_data)
         
     except Exception as e:
         print(f"Chat route error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/history", methods=["GET"])
+@verify_firebase_token
+def get_history():
+    if not db:
+        return jsonify({"history": []})
+        
+    uid = request.user.get('uid')
+    try:
+        docs = db.collection('users').document(uid).collection('chats').order_by('timestamp').stream()
+        history = []
+        for doc in docs:
+            data = doc.to_dict()
+            if 'timestamp' in data and data['timestamp']:
+                data['timestamp'] = data['timestamp'].isoformat()
+            history.append(data)
+        return jsonify({"history": history})
+    except Exception as e:
+        print(f"Failed to fetch history: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/create_playlist", methods=["POST"])

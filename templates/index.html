@@ -6,14 +6,21 @@
     <title>MoodTunes</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        window.FIREBASE_CONFIG = {{ firebase_config | tojson | safe }};
+    </script>
 </head>
 <body class="landing-mode">
     <canvas id="glcanvas"></canvas>
     
     <header class="app-header">
         <a href="/" class="logo" style="text-decoration: none;">MoodTunes</a>
-        <div id="spotify-auth-container">
-            <!-- Will be populated by JS -->
+        <div id="auth-container" style="display: flex; gap: 10px; align-items: center;">
+            <button id="firebase-login-btn" class="auth-btn">Sign in with Google</button>
+            <div id="spotify-auth-container" style="display: none;">
+                <!-- Will be populated by JS -->
+            </div>
+            <button id="firebase-logout-btn" class="auth-btn" style="display: none;">Sign Out</button>
         </div>
     </header>
     <div class="app-layout">
@@ -91,6 +98,9 @@
         </div>
     </template>
 
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
     <script src="{{ url_for('static', filename='js/background.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
