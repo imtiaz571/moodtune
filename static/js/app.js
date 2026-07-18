@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (newChatBtn) {
         newChatBtn.addEventListener('click', () => {
             currentSessionId = generateSessionId();
+            localStorage.removeItem('activeSessionId');
             chatBox.innerHTML = '';
             chatBox.appendChild(typingIndicator);
             document.body.classList.remove('chat-mode');
@@ -560,6 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadSession(sessionId) {
         currentSessionId = sessionId;
+        localStorage.setItem('activeSessionId', currentSessionId);
         const chats = allSessions[sessionId] || [];
         
         chatBox.innerHTML = '';
@@ -597,7 +599,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     allSessions[sid].push(chat);
                 });
 
-                renderSidebar();
+                const savedSessionId = localStorage.getItem('activeSessionId');
+                if (savedSessionId && allSessions[savedSessionId]) {
+                    loadSession(savedSessionId);
+                } else {
+                    renderSidebar();
+                }
             } else {
                 renderSidebar();
             }
