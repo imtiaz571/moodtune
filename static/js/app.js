@@ -121,6 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Firebase Auth Setup ---
     if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey) {
         firebase.initializeApp(window.FIREBASE_CONFIG);
+        
+        // Initialize Analytics if supported
+        if (typeof firebase.analytics === 'function') {
+            firebase.analytics();
+        }
     }
     
     if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
