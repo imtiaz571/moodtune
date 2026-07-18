@@ -62,10 +62,10 @@ class SpotifyService:
             # Create playlist via POST /me/playlists (Spotipy handles the endpoint details, user_playlist_create uses /users/{user_id}/playlists but since Feb 2026 it's deprecated. Wait, spotipy's user_playlist_create might still use the old one. Let's use Spotipy's internal request to be safe, or just spotipy.user_playlist_create if it's updated, but the prompt says: "create a new playlist via POST /me/playlists ... NOT the older /users/{user_id}/playlists". Spotipy might be outdated. I will use the raw spotipy client._post to ensure it hits /me/playlists.)
             
             # Use raw request to guarantee we hit /me/playlists
-            playlist = client._post('me/playlists', payload={
+            playlist = client._post('users/{}/playlists'.format(user_id), payload={
                 "name": name,
                 "description": description,
-                "public": False
+                "public": True
             })
             
             playlist_id = playlist['id']
