@@ -443,12 +443,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             let controlsHtml = `<div class="playlist-controls" style="display: flex; gap: 10px;">`;
-            const playableTrack = data.tracks.find(t => t.spotify_url);
-            if (playableTrack) {
-                controlsHtml += `<a href="${playableTrack.spotify_url}" target="_blank" class="playlist-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Listen on Spotify 🎧</a>`;
-            }
             if (isSpotifyLoggedIn && data.tracks.some(t => t.uri)) {
-                controlsHtml += `<button class="playlist-btn create-playlist-btn">Create Spotify Playlist 🎵</button>`;
+                controlsHtml += `<button class="playlist-btn create-playlist-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Create a Playlist 🎵</button>`;
             }
             controlsHtml += `</div>`;
             botContent += controlsHtml;
