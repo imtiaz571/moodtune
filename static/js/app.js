@@ -567,35 +567,71 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Rename button
-            div.querySelector('.ctx-rename').addEventListener('click', (e) => {
+            div.querySelector('.ctx-rename').addEventListener('click', async (e) => {
                 e.stopPropagation();
                 ctxMenu.classList.remove('show');
                 const newName = prompt('Rename chat:', session.title || '');
                 if (newName !== null && newName.trim() !== '') {
-                    // Update the title in all chats of this session
-                    if (allSessions[session.id]) {
-                        allSessions[session.id].forEach(c => c.chat_title = newName.trim());
+                    const trimmedName = newName.trim();
+                    try {
+                        const token = await auth.currentUser.getIdToken(true);
+                        const response = await fetch(`/api/chat/${session.id}/rename`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ title: trimmedName })
+                        });
+                        
+                        if (response.ok) {
+                            if (allSessions[session.id]) {
+                                allSessions[session.id].forEach(c => c.chat_title = trimmedName);
+                            }
+                            renderSidebar();
+                        } else {
+                            console.error('Failed to rename chat on server');
+                            alert('Failed to rename chat.');
+                        }
+                    } catch (err) {
+                        console.error('Error renaming chat:', err);
                     }
-                    renderSidebar();
                 }
             });
 
             // Delete button
-            div.querySelector('.ctx-delete').addEventListener('click', (e) => {
+            div.querySelector('.ctx-delete').addEventListener('click', async (e) => {
                 e.stopPropagation();
                 ctxMenu.classList.remove('show');
                 if (confirm('Delete this chat?')) {
-                    delete allSessions[session.id];
-                    if (session.id === currentSessionId) {
-                        currentSessionId = generateSessionId();
-                        chatBox.innerHTML = '';
-                        chatBox.appendChild(typingIndicator);
-                        document.body.classList.remove('chat-mode');
-                        document.body.classList.add('landing-mode');
-                        document.getElementById('chat-area').classList.add('hidden');
-                        isFirstMessage = true;
+                    try {
+                        const token = await auth.currentUser.getIdToken(true);
+                        const response = await fetch(`/api/chat/${session.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            delete allSessions[session.id];
+                            if (session.id === currentSessionId) {
+                                currentSessionId = generateSessionId();
+                                chatBox.innerHTML = '';
+                                chatBox.appendChild(typingIndicator);
+                                document.body.classList.remove('chat-mode');
+                                document.body.classList.add('landing-mode');
+                                document.getElementById('chat-area').classList.add('hidden');
+                                isFirstMessage = true;
+                            }
+                            renderSidebar();
+                        } else {
+                            console.error('Failed to delete chat on server');
+                            alert('Failed to delete chat.');
+                        }
+                    } catch (err) {
+                        console.error('Error deleting chat:', err);
                     }
-                    renderSidebar();
                 }
             });
             

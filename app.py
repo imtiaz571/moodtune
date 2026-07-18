@@ -199,6 +199,59 @@ def get_history():
         print(f"Failed to fetch history: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/chat/<session_id>", methods=["DELETE"])
+@verify_firebase_token
+def delete_chat(session_id):
+    if not db:
+        return jsonify({"error": "Database not initialized"}), 500
+        
+    uid = request.user.get('uid')
+    try:
+        # Get all documents for this session
+        docs = db.collection('users').document(uid).collection('chats').where('session_id', '==', session_id).stream()
+        batch = db.batch()
+        count = 0
+        for doc in docs:
+            batch.delete(doc.reference)
+            count += 1
+            
+        if count > 0:
+            batch.commit()
+            
+        return jsonify({"success": True, "deleted": count})
+    except Exception as e:
+        print(f"Failed to delete chat: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/chat/<session_id>/rename", methods=["PUT"])
+@verify_firebase_token
+def rename_chat(session_id):
+    if not db:
+        return jsonify({"error": "Database not initialized"}), 500
+        
+    data = request.json
+    new_title = data.get('title')
+    if not new_title:
+        return jsonify({"error": "New title required"}), 400
+        
+    uid = request.user.get('uid')
+    try:
+        # Get all documents for this session
+        docs = db.collection('users').document(uid).collection('chats').where('session_id', '==', session_id).stream()
+        batch = db.batch()
+        count = 0
+        for doc in docs:
+            batch.update(doc.reference, {'chat_title': new_title})
+            count += 1
+            
+        if count > 0:
+            batch.commit()
+            
+        return jsonify({"success": True, "updated": count})
+    except Exception as e:
+        print(f"Failed to rename chat: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/create_playlist", methods=["POST"])
 def create_playlist():
     token_info = session.get("token_info")
