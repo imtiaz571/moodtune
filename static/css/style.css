@@ -1,6 +1,6 @@
 :root {
-    --bg-dark: #121212;
-    --bg-surface: #1C1C1C;
+    --bg-dark: #101114; /* Slightly different dark to match reference */
+    --bg-surface: #1E1E1E;
     --bg-surface-light: #282828;
     --text-main: #E8EAED;
     --text-dim: #9AA0A6;
@@ -26,123 +26,24 @@ body {
 }
 
 #glcanvas {
-    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Place it behind everything */
+    pointer-events: none; /* Let clicks pass through to the chat */
 }
 
 .app-layout {
     width: 100%;
-    max-width: 100%;
-    margin: 0;
+    max-width: 900px;
+    margin: 0 auto;
     flex: 1;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     position: relative;
     min-height: 0;
-}
-
-/* ─── Sidebar ─── */
-.sidebar {
-    width: 260px;
-    background-color: var(--bg-surface);
-    border-radius: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 20px 16px 16px 16px;
-    gap: 16px;
-    flex-shrink: 0;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-}
-
-.new-chat-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #121212;
-    border: none;
-    color: var(--text-main);
-    padding: 12px 16px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: background 0.2s, border-color 0.2s;
-    width: 100%;
-    flex-shrink: 0;
-}
-
-.new-chat-btn:hover {
-    background: #282828;
-}
-
-.sidebar-recent-label {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    font-weight: 600;
-    margin-top: 8px;
-    padding: 0 12px;
-    flex-shrink: 0;
-}
-
-.chat-history-list {
-    list-style: none;
-    overflow-y: auto;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.chat-history-list::-webkit-scrollbar {
-    width: 4px;
-}
-.chat-history-list::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-}
-
-.chat-history-item {
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: var(--text-main);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: background 0.2s;
-    user-select: none;
-}
-
-.chat-history-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.chat-history-item.active {
-    background: rgba(255, 255, 255, 0.1);
-    font-weight: 500;
-}
-
-.icon-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-main);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    border-radius: 50%;
-    transition: background 0.2s;
-}
-
-.icon-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.mobile-only {
-    display: none;
 }
 
 /* ─── Header ─── */
@@ -151,21 +52,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative;
     z-index: 10;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-}
-
-.main-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    height: 100%;
 }
 
 .logo {
@@ -208,31 +95,17 @@ body {
 body.landing-mode .main-content {
     justify-content: center;
     align-items: center;
-    gap: 20px;
-    overflow-y: auto;
+    gap: 30px;
 }
 
 body.landing-mode .landing-hero {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    width: 100%;
+    display: block;
     opacity: 1;
     transition: opacity 0.5s ease;
-    margin-top: auto;
 }
 
 body.landing-mode .chat-area {
     display: none;
-}
-
-body.landing-mode .preset-chips-container {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    padding-bottom: 10px;
-    order: 2;
-    margin-bottom: auto;
 }
 
 body.landing-mode .input-wrapper {
@@ -241,8 +114,16 @@ body.landing-mode .input-wrapper {
     justify-content: center;
     transform: translateY(0);
     transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-    padding-bottom: 10px; /* Optional spacing */
-    order: 1;
+}
+
+body.landing-mode .preset-chips-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+body.landing-mode .input-wrapper:focus-within + .preset-chips-container {
+    display: none;
 }
 
 /* ─── Chat Mode Styles ─── */
@@ -282,22 +163,22 @@ body.chat-mode .input-wrapper {
     font-weight: 400;
     color: var(--text-main);
     text-align: center;
-    margin: 0 0 30px 0;
+    margin: 0;
 }
 
 .preset-chips {
-    display: grid;
-    grid-template-columns: auto auto;
+    display: flex;
     gap: 12px;
+    flex-wrap: wrap;
     justify-content: center;
     max-width: 650px;
 }
 
 .preset-chip {
-    background: #1C1C1C;
-    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-dim);
-    padding: 12px 20px;
+    padding: 10px 16px;
     border-radius: 20px;
     font-size: 0.9rem;
     cursor: pointer;
@@ -305,26 +186,28 @@ body.chat-mode .input-wrapper {
 }
 
 .preset-chip:hover {
-    background: #282828;
+    background: rgba(255, 255, 255, 0.1);
     color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
 
 /* ─── Input Bar (Gemini style) ─── */
 #chat-form {
     width: 100%;
-    max-width: 750px;
-    background: #1C1C1C;
+    max-width: 650px;
+    background: #1E1F22;
     border-radius: 30px;
     display: flex;
     align-items: center;
     padding: 6px 6px 6px 20px;
-    border: none;
-    transition: background 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.3s, border-color 0.3s;
 }
 
 #chat-form:focus-within {
-    background: #282828;
+    background: #25262A;
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 #user-input {
@@ -620,33 +503,7 @@ body.chat-mode .input-wrapper {
 }
 
 /* ─── Mobile Responsive Adjustments ─── */
-@media (max-width: 768px) {
-    .app-layout {
-        flex-direction: column;
-    }
-    
-    .mobile-only {
-        display: flex;
-    }
-
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100%;
-        margin: 0;
-        border-radius: 0;
-        z-index: 100;
-        background-color: var(--bg-surface);
-        transform: translateX(-100%);
-        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
-        padding-top: 24px;
-    }
-
-    .sidebar.open {
-        transform: translateX(0);
-    }
-
+@media (max-width: 480px) {
     .app-header {
         padding: 16px;
     }

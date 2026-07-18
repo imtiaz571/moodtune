@@ -116,142 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let isSpotifyLoggedIn = false;
-    let isFirstMessage = true;
-    
-    let appState = {
-        sessions: [],
-        activeSessionId: null
-    };
-
-    function loadState() {
-        const saved = localStorage.getItem('moodtunes_sessions');
-        if (saved) {
-            appState = JSON.parse(saved);
-        }
-    }
-
-    function saveState() {
-        localStorage.setItem('moodtunes_sessions', JSON.stringify(appState));
-    }
-
-    function generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
-
-    function renderSidebar() {
-        const list = document.getElementById('chat-history-list');
-        if (!list) return;
-        list.innerHTML = '';
-        
-        appState.sessions.forEach(session => {
-            const li = document.createElement('li');
-            li.className = 'chat-history-item' + (session.id === appState.activeSessionId ? ' active' : '');
-            li.textContent = session.title;
-            li.onclick = () => loadSession(session.id);
-            list.appendChild(li);
-        });
-    }
-
-    function startNewChat() {
-        appState.activeSessionId = null;
-        saveState();
-        renderSidebar();
-
-        chatBox.innerHTML = '';
-        chatBox.appendChild(typingIndicator);
-        hideTyping();
-
-        document.body.classList.add('landing-mode');
-        document.body.classList.remove('chat-mode');
-        document.getElementById('chat-area').classList.add('hidden');
-        document.body.style.background = 'var(--bg-dark)';
-        isFirstMessage = true;
-        
-        const sidebar = document.getElementById('sidebar');
-        if (window.innerWidth <= 768 && sidebar) {
-            sidebar.classList.remove('open');
-        }
-    }
-
-    function loadSession(id) {
-        appState.activeSessionId = id;
-        saveState();
-        renderSidebar();
-
-        const session = appState.sessions.find(s => s.id === id);
-        if (!session) return;
-
-        chatBox.innerHTML = '';
-        chatBox.appendChild(typingIndicator);
-        hideTyping();
-
-        document.body.classList.remove('landing-mode');
-        document.body.classList.add('chat-mode');
-        document.getElementById('chat-area').classList.remove('hidden');
-        isFirstMessage = false;
-
-        setTimeout(() => {
-            session.messages.forEach(msg => {
-                appendMessage(msg.sender, msg.text, msg.isHtml, msg.mood, false);
-            });
-            
-            const lastBotMsg = session.messages.slice().reverse().find(m => m.sender === 'bot');
-            if (lastBotMsg && lastBotMsg.mood) {
-                applyMoodGlow(lastBotMsg.mood);
-            } else {
-                document.body.style.background = 'var(--bg-dark)';
-            }
-            scrollToBottom();
-        }, 0);
-        
-        const sidebar = document.getElementById('sidebar');
-        if (window.innerWidth <= 768 && sidebar) {
-            sidebar.classList.remove('open');
-        }
-    }
-
-    function saveMessage(sender, text, isHtml, mood) {
-        if (!appState.activeSessionId) {
-            // Create new session
-            let safeText = text.replace(/<[^>]*>?/gm, ''); // strip HTML if any
-            const newSession = {
-                id: generateId(),
-                title: safeText.substring(0, 30) + (safeText.length > 30 ? '...' : 'New Chat'),
-                messages: []
-            };
-            appState.sessions.unshift(newSession);
-            appState.activeSessionId = newSession.id;
-        }
-
-        const session = appState.sessions.find(s => s.id === appState.activeSessionId);
-        if (session) {
-            session.messages.push({ sender, text, isHtml, mood });
-        }
-
-        saveState();
-        renderSidebar();
-    }
-
-    // Initialize State
-    loadState();
-    renderSidebar();
-    if (appState.activeSessionId) {
-        loadSession(appState.activeSessionId);
-    }
-
-    // Sidebar Event Listeners
-    const newChatBtn = document.getElementById('new-chat-btn');
-    if (newChatBtn) newChatBtn.addEventListener('click', startNewChat);
-
-    const mobileMenuBtns = document.querySelectorAll('.mobile-only[title="Menu"]');
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-        mobileMenuBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                sidebar.classList.toggle('open');
-            });
-        });
-    }
 
     // Check Spotify Auth Status
     fetch('/api/auth_status')
@@ -273,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => console.error("Error fetching auth status", err));
 
-    function appendMessage(sender, text, isHtml = false, mood = null, save = true) {
+    function appendMessage(sender, text, isHtml = false, mood = null) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}-message fade-in`;
 
@@ -297,11 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chatBox.insertBefore(msgDiv, typingIndicator);
         scrollToBottom();
-        
-        if (save) {
-            saveMessage(sender, text, isHtml, mood);
-        }
-
         return msgDiv;
     }
 
@@ -361,6 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { btnElement.disabled = false; btnElement.textContent = "Save as Playlist 📝"; }, 3000);
         }
     };
+
+    let isFirstMessage = true;
 
     // Handle preset chips
     const presetChips = document.querySelectorAll('.preset-chip');
