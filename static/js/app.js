@@ -540,7 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const div = document.createElement('div');
             div.className = `chat-item ${session.id === currentSessionId ? 'active' : ''}`;
-            div.dataset.sessionId = session.id;
             div.innerHTML = `
                 <div class="chat-icon">${theme.emoji}</div>
                 <div class="chat-item-content">
@@ -613,88 +612,4 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Failed to load history", e);
         }
     }
-
-    // Global context menu logic
-    const contextMenu = document.getElementById('global-context-menu');
-    let currentMenuSessionId = null;
-
-    document.addEventListener('click', (e) => {
-        if (!contextMenu) return;
-        const btn = e.target.closest('.chat-item-menu-btn');
-        
-        if (btn) {
-            e.stopPropagation();
-            currentMenuSessionId = btn.closest('.chat-item').dataset.sessionId;
-            const rect = btn.getBoundingClientRect();
-            // Show below the button
-            contextMenu.style.left = `${rect.left + 15}px`;
-            contextMenu.style.top = `${rect.bottom + 5}px`;
-            contextMenu.classList.add('show');
-        } else if (!e.target.closest('.chat-context-menu')) {
-            contextMenu.classList.remove('show');
-        }
-    });
-
-    const renameBtn = document.getElementById('rename-chat-btn');
-    const deleteBtn = document.getElementById('delete-chat-btn');
-
-    if (renameBtn) {
-        renameBtn.addEventListener('click', async () => {
-            contextMenu.classList.remove('show');
-            if (!currentMenuSessionId) return;
-            const newTitle = prompt("Enter new chat title:");
-            if (!newTitle) return;
-
-            try {
-                const res = await fetch(`/api/chat/${currentMenuSessionId}`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${firebaseIdToken}`
-                    },
-                    body: JSON.stringify({ title: newTitle })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    if (allSessions[currentMenuSessionId]) {
-                        allSessions[currentMenuSessionId].forEach(chat => chat.chat_title = newTitle);
-                        renderSidebar();
-                    }
-                } else {
-                    alert("Failed to rename: " + data.error);
-                }
-            } catch(e) { console.error(e); }
-        });
-    }
-
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', async () => {
-            contextMenu.classList.remove('show');
-            if (!currentMenuSessionId) return;
-            if (!confirm("Are you sure you want to delete this chat?")) return;
-
-            try {
-                const res = await fetch(`/api/chat/${currentMenuSessionId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${firebaseIdToken}` }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    delete allSessions[currentMenuSessionId];
-                    if (currentSessionId === currentMenuSessionId) {
-                        currentSessionId = generateSessionId();
-                        localStorage.removeItem('activeSessionId');
-                        document.body.classList.remove('chat-mode');
-                        document.body.classList.add('landing-mode');
-                        document.getElementById('chat-area').classList.add('hidden');
-                    }
-                    renderSidebar();
-                } else {
-                    alert("Failed to delete: " + data.error);
-                }
-            } catch(e) { console.error(e); }
-        });
-    }
-
-    const presetChips = document.querySelectorAll('.preset-chip');
 });

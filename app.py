@@ -196,43 +196,8 @@ def get_history():
             history.append(data)
         return jsonify({"history": history})
     except Exception as e:
+        print(f"Failed to fetch history: {e}")
         return jsonify({"error": str(e)}), 500
-
-@app.route("/api/chat/<session_id>", methods=["DELETE"])
-@verify_firebase_token
-def delete_chat(session_id):
-    if not db:
-        return jsonify({"success": False, "error": "No database"}), 500
-    uid = request.user.get('uid')
-    try:
-        docs = db.collection('users').document(uid).collection('chats').where('session_id', '==', session_id).stream()
-        for doc in docs:
-            doc.reference.delete()
-        return jsonify({"success": True})
-    except Exception as e:
-        print(f"Failed to delete chat: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route("/api/chat/<session_id>", methods=["PUT"])
-@verify_firebase_token
-def rename_chat(session_id):
-    if not db:
-        return jsonify({"success": False, "error": "No database"}), 500
-    uid = request.user.get('uid')
-    data = request.json
-    new_title = data.get("title")
-    if not new_title:
-        return jsonify({"success": False, "error": "No title provided"}), 400
-    try:
-        # Sort to find the first chat document of this session to rename, or rename all
-        # To be safe, let's update chat_title on all docs in this session so the frontend gets it
-        docs = db.collection('users').document(uid).collection('chats').where('session_id', '==', session_id).stream()
-        for doc in docs:
-            doc.reference.update({"chat_title": new_title})
-        return jsonify({"success": True})
-    except Exception as e:
-        print(f"Failed to rename chat: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/create_playlist", methods=["POST"])
 def create_playlist():
