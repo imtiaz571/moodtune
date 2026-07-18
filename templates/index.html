@@ -39,20 +39,24 @@
             </div>
             
             <div class="sidebar-footer">
-                <div id="spotify-auth-container" class="spotify-auth-container">
-                    <!-- Will be populated by JS -->
-                </div>
-                
-                <div id="auth-container" class="firebase-auth-container">
-                    <button id="firebase-login-btn" class="auth-btn" style="width: 100%;">Sign in with Google</button>
-                    <button id="firebase-logout-btn" class="auth-btn" style="display: none; width: 100%;">Sign Out</button>
-                </div>
+                <!-- Auth moved to header -->
             </div>
         </aside>
 
         <div class="app-layout">
-            <header class="app-header">
+            <header class="app-header" style="display: flex; justify-content: space-between; padding: 20px; align-items: center; width: 100%; box-sizing: border-box;">
                 <button id="mobile-menu-btn" class="hamburger-btn mobile-only" style="display: none;">☰</button>
+                <div style="flex: 1;"></div>
+                <div class="auth-buttons" style="display: flex; gap: 10px; align-items: center;">
+                    <div id="spotify-auth-container" class="spotify-auth-container">
+                        <!-- Will be populated by JS -->
+                    </div>
+                    
+                    <div id="auth-container" class="firebase-auth-container">
+                        <button id="firebase-login-btn" class="auth-btn">Sign in with Google</button>
+                        <button id="firebase-logout-btn" class="auth-btn" style="display: none; background: transparent; border: 1px solid rgba(255,68,68,0.5); color: #ff4444;">Sign Out</button>
+                    </div>
+                </div>
             </header>
 
             <main class="main-content">
