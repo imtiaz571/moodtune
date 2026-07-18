@@ -18,7 +18,7 @@
         <aside class="app-sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="/" class="logo" style="text-decoration: none;">
-                    <span class="logo-text" style="color: #ffffff;">Mood<span style="color: #1DB954;">Tunes</span></span>
+                    <span class="logo-text">MoodTunes</span>
                 </a>
                 <button id="sidebar-collapse-btn" class="collapse-btn desktop-only" title="Close sidebar">
                     <svg class="icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -41,10 +41,7 @@
             </button>
             
             <div class="search-container">
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+                <span class="search-icon">🔍</span>
                 <input type="text" id="search-chats" placeholder="Search chats...">
             </div>
             
@@ -56,14 +53,7 @@
             </div>
             
             <div class="sidebar-footer">
-                <div id="auth-container" class="firebase-auth-container">
-                    <button id="firebase-login-btn" class="auth-btn google-auth-btn">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" class="google-logo"> Continue with Google
-                    </button>
-                    <button id="firebase-logout-btn" class="auth-btn google-auth-btn" style="display: none;">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" class="google-logo"> Sign Out
-                    </button>
-                </div>
+                <!-- Auth moved to header -->
             </div>
         </aside>
 
@@ -75,12 +65,17 @@
                     <div id="spotify-auth-container" class="spotify-auth-container">
                         <!-- Will be populated by JS -->
                     </div>
+                    
+                    <div id="auth-container" class="firebase-auth-container">
+                        <button id="firebase-login-btn" class="auth-btn">Sign in with Google</button>
+                        <button id="firebase-logout-btn" class="auth-btn" style="display: none; background: transparent; border: 1px solid rgba(255,68,68,0.5); color: #ff4444;">Sign Out</button>
+                    </div>
                 </div>
             </header>
 
             <main class="main-content">
             <div class="landing-hero" id="landing-hero">
-                <h1 class="hero-green">How can I help you<br>find music today?</h1>
+                <h1>Your Perfect Music Finding companion!</h1>
             </div>
 
             <div class="chat-area hidden" id="chat-area">
@@ -111,9 +106,9 @@
 
             <div class="preset-chips-container" id="preset-chips-container">
                 <div class="preset-chips">
-                    <button class="preset-chip">Feeling super happy!</button>
-                    <button class="preset-chip">A bit stressed, need to relax</button>
-                    <button class="preset-chip">Nostalgic for the past</button>
+                    <button class="preset-chip">I'm feeling super happy today!</button>
+                    <button class="preset-chip">A bit stressed and need to relax</button>
+                    <button class="preset-chip">Feeling nostalgic for the past</button>
                     <button class="preset-chip">Just want some chill vibes</button>
                 </div>
             </div>
