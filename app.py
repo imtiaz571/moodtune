@@ -232,8 +232,8 @@ def create_playlist():
         name = "MoodTunes Mix"
         description = "Created by MoodTunes AI."
         
-        playlist_url = spotify_service.create_playlist(sp_client, name, description, uris)
-        return jsonify({"success": True, "url": playlist_url})
+        playlist_data = spotify_service.create_playlist(sp_client, name, description, uris)
+        return jsonify({"success": True, "url": playlist_data["url"], "uri": playlist_data["uri"]})
         
     except Exception as e:
         print(f"Playlist creation error: {e}")

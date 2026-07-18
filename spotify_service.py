@@ -70,13 +70,14 @@ class SpotifyService:
             
             playlist_id = playlist['id']
             playlist_url = playlist['external_urls'].get('spotify')
+            playlist_uri = playlist.get('uri')
             
             # Add items
             if track_uris:
                 # Max 100 per request, but we only have 6-8
                 client.playlist_add_items(playlist_id, track_uris)
                 
-            return playlist_url
+            return {"url": playlist_url, "uri": playlist_uri}
         except Exception as e:
             print(f"Error creating playlist: {e}")
             raise e

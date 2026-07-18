@@ -301,8 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (data.success) {
-                btnElement.outerHTML = `<a href="${data.url}" target="_blank" class="playlist-btn" style="background: var(--spotify-green);">Playing on Spotify 🎵</a>`;
-                window.open(data.url, '_blank');
+                btnElement.outerHTML = `<a href="${data.uri}:play" class="playlist-btn" style="background: var(--spotify-green); color: #000; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Listen to Playlist 🎧</a>`;
             } else {
                 if (data.error === "not_logged_in") {
                     btnElement.textContent = "Login to Spotify first!";
@@ -472,10 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     const pdata = await pres.json();
                     if (pdata.success) {
-                        createBtn.textContent = 'Playlist Created! 🎉';
-                        createBtn.style.background = 'var(--spotify-green)';
-                        createBtn.style.color = '#000';
-                        setTimeout(() => window.open(pdata.url, '_blank'), 500);
+                        createBtn.outerHTML = `<a href="${pdata.uri}:play" class="playlist-btn create-playlist-btn" style="background: var(--spotify-green); color: #000; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Listen to Playlist 🎧</a>`;
                     } else {
                         if (pdata.error === "not_logged_in") {
                             alert("Your Spotify session expired. Please connect Spotify again.");
