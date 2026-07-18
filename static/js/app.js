@@ -544,7 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `chat-item ${session.id === currentSessionId ? 'active' : ''}`;
             div.innerHTML = `
-                <div class="chat-icon">${theme.emoji}</div>
                 <div class="chat-item-content">
                     <div class="chat-title" ${!hasTitle ? 'style="opacity: 0.4; font-style: italic;"' : ''}>${titleSnippet}</div>
                     <div class="chat-time">${getTimeAgo(session.timestamp)}</div>
