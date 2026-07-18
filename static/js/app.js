@@ -225,9 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 isSpotifyLoggedIn = data.logged_in;
                 if (data.logged_in) {
                     spotifyAuthContainer.innerHTML = `<span style="color: var(--text-dim); font-size: 0.85rem; margin-right: 12px;">Spotify Connected</span>
-                                                      <a href="/logout" class="auth-btn" style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">Disconnect</a>`;
+                                                      <a href="/logout" class="auth-btn spotify-auth-btn" style="background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);">Disconnect</a>`;
                 } else {
-                    spotifyAuthContainer.innerHTML = `<a href="/login" class="auth-btn">Connect Spotify</a>`;
+                    spotifyAuthContainer.innerHTML = `<a href="/login" class="auth-btn spotify-auth-btn"><img src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Icon_RGB_Black.png" style="width:16px;height:16px;vertical-align:middle;margin-right:8px;">Connect to Spotify</a>`;
                 }
             })
             .catch(err => console.error("Error fetching auth status", err));
@@ -616,4 +616,12 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Failed to load history", e);
         }
     }
+
+    const presetChips = document.querySelectorAll('.preset-chip');
+    presetChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            userInput.value = chip.textContent;
+            chatForm.dispatchEvent(new Event('submit'));
+        });
+    });
 });
