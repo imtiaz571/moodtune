@@ -574,7 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (newName !== null && newName.trim() !== '') {
                     const trimmedName = newName.trim();
                     try {
-                        const token = await auth.currentUser.getIdToken(true);
+                        const token = firebaseIdToken;
                         const response = await fetch(`/api/chat/${session.id}/rename`, {
                             method: 'PUT',
                             headers: {
@@ -590,11 +590,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             renderSidebar();
                         } else {
-                            console.error('Failed to rename chat on server');
-                            alert('Failed to rename chat.');
+                            const errData = await response.json();
+                            console.error('Failed to rename chat on server:', errData);
+                            alert('Failed to rename chat: ' + (errData.error || 'Unknown server error'));
                         }
                     } catch (err) {
                         console.error('Error renaming chat:', err);
+                        alert('Error renaming chat: ' + err.message);
                     }
                 }
             });
@@ -605,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctxMenu.classList.remove('show');
                 if (confirm('Delete this chat?')) {
                     try {
-                        const token = await auth.currentUser.getIdToken(true);
+                        const token = firebaseIdToken;
                         const response = await fetch(`/api/chat/${session.id}`, {
                             method: 'DELETE',
                             headers: {
@@ -626,11 +628,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             renderSidebar();
                         } else {
-                            console.error('Failed to delete chat on server');
-                            alert('Failed to delete chat.');
+                            const errData = await response.json();
+                            console.error('Failed to delete chat on server:', errData);
+                            alert('Failed to delete chat: ' + (errData.error || 'Unknown server error'));
                         }
                     } catch (err) {
                         console.error('Error deleting chat:', err);
+                        alert('Error deleting chat: ' + err.message);
                     }
                 }
             });

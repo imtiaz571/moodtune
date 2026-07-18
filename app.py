@@ -229,8 +229,9 @@ def rename_chat(session_id):
     if not db:
         return jsonify({"error": "Database not initialized"}), 500
         
-    data = request.json
+    data = request.get_json(silent=True) or {}
     new_title = data.get('title')
+    print(f"DEBUG: Renaming session {session_id} to '{new_title}', request.json was {request.json}")
     if not new_title:
         return jsonify({"error": "New title required"}), 400
         
