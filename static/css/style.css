@@ -238,6 +238,7 @@ body.landing-mode .preset-chips-container {
     justify-content: center;
     width: 100%;
     padding-bottom: 10px;
+    order: 2;
 }
 
 body.landing-mode .input-wrapper {
@@ -249,6 +250,7 @@ body.landing-mode .input-wrapper {
     position: sticky;
     bottom: 0;
     padding-bottom: 10px; /* Optional spacing */
+    order: 1;
 }
 
 /* ─── Chat Mode Styles ─── */
@@ -292,9 +294,9 @@ body.chat-mode .input-wrapper {
 }
 
 .preset-chips {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
     gap: 12px;
-    flex-wrap: wrap;
     justify-content: center;
     max-width: 650px;
 }
