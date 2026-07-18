@@ -237,10 +237,9 @@ def create_playlist():
         
     except Exception as e:
         import traceback
-        with open("error.log", "a") as f:
-            f.write(traceback.format_exc() + "\n")
-        print(f"Playlist creation error: {e}")
-        return jsonify({"error": str(e), "success": False}), 500
+        error_trace = traceback.format_exc()
+        print(f"Playlist creation error: {error_trace}")
+        return jsonify({"error": error_trace, "success": False}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
