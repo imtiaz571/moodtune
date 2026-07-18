@@ -15,8 +15,13 @@ class TrackRecommendation(BaseModel):
 
 class MoodResponse(BaseModel):
     chat_title: str = Field(
-        default="New Chat",
-        description="A short, catchy title for this chat based on the user's demand (e.g. 'Chill Pop Mix', 'Relax Moody Mix', 'Bangla Classic Mix'). Maximum 4 words."
+        default="",
+        description=(
+            "A short, catchy title for this chat session. RULES: "
+            "1) If you are still asking onboarding questions (age, language, music taste) and have NOT yet collected ALL three, set this to an EMPTY STRING ''. "
+            "2) ONLY after you have collected ALL preferences AND are ready to give recommendations, generate a catchy title that combines the user's language + mood + genre "
+            "(e.g. 'Bangla Moody Romantic Mix', 'English Chill Pop Vibes', 'Hindi Sad Lofi Mix'). Maximum 5 words."
+        )
     )
     detected_mood: str = Field(
         description=(

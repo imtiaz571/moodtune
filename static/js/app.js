@@ -514,10 +514,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Sort chats by timestamp
                 chats.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
                 const firstChat = chats[0];
+                // Find the latest non-empty chat_title in this session
+                let sessionTitle = '';
+                for (let i = chats.length - 1; i >= 0; i--) {
+                    if (chats[i].chat_title && chats[i].chat_title.trim() !== '') {
+                        sessionTitle = chats[i].chat_title;
+                        break;
+                    }
+                }
                 return {
                     id,
                     chats,
-                    title: firstChat ? (firstChat.chat_title || firstChat.user_message) : 'New Chat',
+                    title: sessionTitle,
                     mood: firstChat ? firstChat.mood : 'neutral',
                     timestamp: firstChat ? firstChat.timestamp : null
                 };
@@ -528,14 +536,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (filterText && !session.title.toLowerCase().includes(filterText.toLowerCase())) return;
 
             const theme = getMoodTheme(session.mood);
-            const titleSnippet = session.title.split(' ').slice(0, 4).join(' ') + (session.title.split(' ').length > 4 ? '...' : '');
+            const hasTitle = session.title && session.title.trim() !== '';
+            const titleSnippet = hasTitle
+                ? (session.title.split(' ').slice(0, 5).join(' ') + (session.title.split(' ').length > 5 ? '...' : ''))
+                : '• • •';
 
             const div = document.createElement('div');
             div.className = `chat-item ${session.id === currentSessionId ? 'active' : ''}`;
             div.innerHTML = `
                 <div class="chat-icon">${theme.emoji}</div>
                 <div class="chat-item-content">
-                    <div class="chat-title">${titleSnippet}</div>
+                    <div class="chat-title" ${!hasTitle ? 'style="opacity: 0.4; font-style: italic;"' : ''}>${titleSnippet}</div>
                     <div class="chat-time">${getTimeAgo(session.timestamp)}</div>
                 </div>
                 <button class="chat-item-menu-btn" title="Options">⋮</button>
