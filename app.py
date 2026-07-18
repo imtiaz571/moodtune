@@ -158,7 +158,9 @@ def chat():
         if db:
             try:
                 uid = request.user.get('uid')
+                session_id = data.get("session_id", "default")
                 chat_doc = {
+                    "session_id": session_id,
                     "user_message": user_message,
                     "reply": response_data["reply"],
                     "mood": response_data["mood"],

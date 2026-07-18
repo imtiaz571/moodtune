@@ -6,6 +6,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('send-btn');
     const spotifyAuthContainer = document.getElementById('spotify-auth-container');
 
+    // Sidebar Elements
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenuClose = document.getElementById('mobile-menu-close');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const searchChats = document.getElementById('search-chats');
+    const chatHistoryList = document.getElementById('chat-history-list');
+
+    let currentSessionId = generateSessionId();
+    let allSessions = {}; // Map of sessionId -> chats array
+
+    function generateSessionId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    }
+
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', () => sidebar.classList.add('open'));
+    if (mobileMenuClose) mobileMenuClose.addEventListener('click', () => sidebar.classList.remove('open'));
+
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', () => {
+            currentSessionId = generateSessionId();
+            chatBox.innerHTML = '';
+            chatBox.appendChild(typingIndicator);
+            document.body.classList.remove('chat-mode');
+            document.body.classList.add('landing-mode');
+            document.getElementById('chat-area').classList.add('hidden');
+            isFirstMessage = true;
+            renderSidebar();
+            if (window.innerWidth <= 768) sidebar.classList.remove('open');
+        });
+    }
+
+    if (searchChats) {
+        searchChats.addEventListener('input', (e) => {
+            renderSidebar(e.target.value);
+        });
+    }
+
     // ─── Visual Viewport Fix for Mobile Keyboards ───
     if (window.visualViewport) {
         const updateViewportHeight = () => {
@@ -311,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: headers,
-                body: JSON.stringify({ message: text })
+                body: JSON.stringify({ message: text, session_id: currentSessionId })
             });
 
             const data = await res.json();
@@ -328,8 +366,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const botContent = buildBotContentHTML(data);
             const msgDiv = appendMessage('bot', botContent, true, mood);
-            
             bindPlaylistButton(msgDiv, data);
+
+            if (!allSessions[currentSessionId]) allSessions[currentSessionId] = [];
+            allSessions[currentSessionId].push({
+                session_id: currentSessionId,
+                user_message: text,
+                reply: data.reply,
+                mood: data.mood,
+                tracks: data.tracks,
+                timestamp: new Date().toISOString()
+            });
+            renderSidebar();
 
         } catch (err) {
             hideTyping();
@@ -435,6 +483,91 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function getTimeAgo(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'Just now';
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours}h ago`;
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays === 1) return 'Yesterday';
+        if (diffInDays < 7) return `${diffInDays}d ago`;
+        return date.toLocaleDateString();
+    }
+
+    function renderSidebar(filterText = '') {
+        chatHistoryList.innerHTML = '';
+        const sessions = Object.keys(allSessions)
+            .map(id => {
+                const chats = allSessions[id];
+                // Sort chats by timestamp
+                chats.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+                const firstChat = chats[0];
+                return {
+                    id,
+                    chats,
+                    title: firstChat ? firstChat.user_message : 'New Chat',
+                    mood: firstChat ? firstChat.mood : 'neutral',
+                    timestamp: firstChat ? firstChat.timestamp : null
+                };
+            })
+            .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); // Newest first
+
+        sessions.forEach(session => {
+            if (filterText && !session.title.toLowerCase().includes(filterText.toLowerCase())) return;
+
+            const theme = getMoodTheme(session.mood);
+            const titleSnippet = session.title.split(' ').slice(0, 4).join(' ') + (session.title.split(' ').length > 4 ? '...' : '');
+
+            const div = document.createElement('div');
+            div.className = `chat-item ${session.id === currentSessionId ? 'active' : ''}`;
+            div.innerHTML = `
+                <div class="chat-icon">${theme.emoji}</div>
+                <div class="chat-item-content">
+                    <div class="chat-title">${titleSnippet}</div>
+                    <div class="chat-time">${getTimeAgo(session.timestamp)}</div>
+                </div>
+                <button class="chat-item-menu-btn" title="Options">⋮</button>
+            `;
+            
+            div.addEventListener('click', (e) => {
+                if (e.target.closest('.chat-item-menu-btn')) return; // handled separately if we add menu
+                loadSession(session.id);
+                if (window.innerWidth <= 768) sidebar.classList.remove('open');
+            });
+
+            chatHistoryList.appendChild(div);
+        });
+    }
+
+    function loadSession(sessionId) {
+        currentSessionId = sessionId;
+        const chats = allSessions[sessionId] || [];
+        
+        chatBox.innerHTML = '';
+        chatBox.appendChild(typingIndicator);
+        
+        if (chats.length > 0) {
+            document.body.classList.remove('landing-mode');
+            document.body.classList.add('chat-mode');
+            document.getElementById('chat-area').classList.remove('hidden');
+            isFirstMessage = false;
+            
+            chats.forEach(chat => {
+                appendMessage('user', chat.user_message);
+                const html = buildBotContentHTML(chat);
+                const msgDiv = appendMessage('bot', html, true, chat.mood || 'neutral');
+                bindPlaylistButton(msgDiv, chat);
+            });
+        }
+        renderSidebar(); // Update active state
+    }
+
     async function fetchHistory() {
         if (!firebaseIdToken) return;
         try {
@@ -442,21 +575,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${firebaseIdToken}` }
             });
             const data = await res.json();
+            
+            allSessions = {}; // reset
             if (data.history && data.history.length > 0) {
-                document.body.classList.remove('landing-mode');
-                document.body.classList.add('chat-mode');
-                document.getElementById('chat-area').classList.remove('hidden');
-                isFirstMessage = false;
-                
-                chatBox.innerHTML = '';
-                chatBox.appendChild(typingIndicator);
-                
                 data.history.forEach(chat => {
-                    appendMessage('user', chat.user_message);
-                    const html = buildBotContentHTML(chat);
-                    const msgDiv = appendMessage('bot', html, true, chat.mood || 'neutral');
-                    bindPlaylistButton(msgDiv, chat);
+                    const sid = chat.session_id || 'Legacy Chat';
+                    if (!allSessions[sid]) allSessions[sid] = [];
+                    allSessions[sid].push(chat);
                 });
+
+                // Load the most recent session by default, or keep it on landing if preferred
+                // Let's load the most recent session if we have history
+                const sortedSessionIds = Object.keys(allSessions).sort((a, b) => {
+                    const tsA = allSessions[a][0].timestamp ? new Date(allSessions[a][0].timestamp) : new Date(0);
+                    const tsB = allSessions[b][0].timestamp ? new Date(allSessions[b][0].timestamp) : new Date(0);
+                    return tsB - tsA;
+                });
+                
+                if (sortedSessionIds.length > 0) {
+                    loadSession(sortedSessionIds[0]);
+                } else {
+                    renderSidebar();
+                }
+            } else {
+                renderSidebar();
             }
         } catch(e) {
             console.error("Failed to load history", e);
