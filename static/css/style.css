@@ -160,6 +160,7 @@ body {
     align-items: center;
     position: relative;
     z-index: 10;
+    width: 100%;
 }
 
 .header-left {
@@ -171,6 +172,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: center;
     min-width: 0;
     height: 100%;
 }
@@ -220,13 +222,13 @@ body.landing-mode .main-content {
 }
 
 body.landing-mode .landing-hero {
-    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     width: 100%;
     opacity: 1;
     transition: opacity 0.5s ease;
+    margin-top: auto;
 }
 
 body.landing-mode .chat-area {
@@ -239,6 +241,7 @@ body.landing-mode .preset-chips-container {
     width: 100%;
     padding-bottom: 10px;
     order: 2;
+    margin-bottom: auto;
 }
 
 body.landing-mode .input-wrapper {
