@@ -219,6 +219,7 @@ body.landing-mode .landing-hero {
     width: 100%;
     opacity: 1;
     transition: opacity 0.5s ease;
+    margin-top: auto;
 }
 
 body.landing-mode .chat-area {
@@ -231,6 +232,7 @@ body.landing-mode .preset-chips-container {
     width: 100%;
     padding-bottom: 10px;
     order: 2;
+    margin-bottom: auto;
 }
 
 body.landing-mode .input-wrapper {
@@ -239,8 +241,6 @@ body.landing-mode .input-wrapper {
     justify-content: center;
     transform: translateY(0);
     transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-    position: sticky;
-    bottom: 0;
     padding-bottom: 10px; /* Optional spacing */
     order: 1;
 }
@@ -282,7 +282,7 @@ body.chat-mode .input-wrapper {
     font-weight: 400;
     color: var(--text-main);
     text-align: center;
-    margin: 0;
+    margin: 0 0 30px 0;
 }
 
 .preset-chips {
