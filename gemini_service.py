@@ -157,7 +157,13 @@ class GeminiService:
             "CRITICAL RULE: You MUST ask these questions ONE BY ONE. DO NOT ask them all at once.\n"
             "If this is the first message, warmly greet them, acknowledge their mood, and ONLY ask for their Age.\n"
             "In the following turns, acknowledge their answer and ask the next missing piece of information.\n"
-            "DO NOT provide song recommendations until you have collected ALL THREE pieces of information."
+            "DO NOT provide song recommendations until you have collected ALL THREE pieces of information.\n\n"
+            "CHAT TITLE RULE:\n"
+            "- While you are still collecting onboarding info (age, language, music taste), set chat_title to EMPTY STRING ''.\n"
+            "- The MOMENT you have all three pieces AND are about to give song recommendations, "
+            "you MUST set chat_title to a catchy name combining their language + mood + genre. "
+            "Examples: 'Bangla Moody Romantic Mix', 'English Chill Pop Vibes', 'Hindi Sad Lofi Mix'. "
+            "This is MANDATORY — never leave chat_title empty once you give recommendations."
         )
 
         # Build contents with history

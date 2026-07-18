@@ -533,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0)); // Newest first
 
         sessions.forEach(session => {
-            if (filterText && !session.title.toLowerCase().includes(filterText.toLowerCase())) return;
+            if (filterText && !session.title.toLowerCase().includes(filterText.toLowerCase()) && session.title) return;
 
             const theme = getMoodTheme(session.mood);
             const hasTitle = session.title && session.title.trim() !== '';
@@ -550,10 +550,58 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="chat-time">${getTimeAgo(session.timestamp)}</div>
                 </div>
                 <button class="chat-item-menu-btn" title="Options">⋮</button>
+                <div class="chat-context-menu">
+                    <button class="ctx-rename">✏️ Rename</button>
+                    <button class="ctx-delete">🗑️ Delete</button>
+                </div>
             `;
+
+            // Options menu button
+            const menuBtn = div.querySelector('.chat-item-menu-btn');
+            const ctxMenu = div.querySelector('.chat-context-menu');
+
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close any other open menus
+                document.querySelectorAll('.chat-context-menu.show').forEach(m => m.classList.remove('show'));
+                ctxMenu.classList.toggle('show');
+            });
+
+            // Rename button
+            div.querySelector('.ctx-rename').addEventListener('click', (e) => {
+                e.stopPropagation();
+                ctxMenu.classList.remove('show');
+                const newName = prompt('Rename chat:', session.title || '');
+                if (newName !== null && newName.trim() !== '') {
+                    // Update the title in all chats of this session
+                    if (allSessions[session.id]) {
+                        allSessions[session.id].forEach(c => c.chat_title = newName.trim());
+                    }
+                    renderSidebar();
+                }
+            });
+
+            // Delete button
+            div.querySelector('.ctx-delete').addEventListener('click', (e) => {
+                e.stopPropagation();
+                ctxMenu.classList.remove('show');
+                if (confirm('Delete this chat?')) {
+                    delete allSessions[session.id];
+                    if (session.id === currentSessionId) {
+                        currentSessionId = generateSessionId();
+                        chatBox.innerHTML = '';
+                        chatBox.appendChild(typingIndicator);
+                        document.body.classList.remove('chat-mode');
+                        document.body.classList.add('landing-mode');
+                        document.getElementById('chat-area').classList.add('hidden');
+                        isFirstMessage = true;
+                    }
+                    renderSidebar();
+                }
+            });
             
             div.addEventListener('click', (e) => {
-                if (e.target.closest('.chat-item-menu-btn')) return; // handled separately if we add menu
+                if (e.target.closest('.chat-item-menu-btn') || e.target.closest('.chat-context-menu')) return;
                 loadSession(session.id);
                 if (window.innerWidth <= 768) sidebar.classList.remove('open');
             });
@@ -615,4 +663,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Failed to load history", e);
         }
     }
+
+    // Close context menus when clicking outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.chat-context-menu.show').forEach(m => m.classList.remove('show'));
+    });
 });

@@ -786,6 +786,8 @@ body.chat-mode .input-wrapper {
 /* Context Menu */
 .chat-context-menu {
     position: absolute;
+    right: 8px;
+    top: 100%;
     background: #1A1A1A;
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
@@ -793,7 +795,7 @@ body.chat-mode .input-wrapper {
     z-index: 200;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     display: none;
-    min-width: 120px;
+    min-width: 140px;
 }
 
 .chat-context-menu.show {
