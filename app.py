@@ -236,6 +236,9 @@ def create_playlist():
         return jsonify({"success": True, "url": playlist_data["url"], "uri": playlist_data["uri"]})
         
     except Exception as e:
+        import traceback
+        with open("error.log", "a") as f:
+            f.write(traceback.format_exc() + "\n")
         print(f"Playlist creation error: {e}")
         return jsonify({"error": str(e), "success": False}), 500
 
