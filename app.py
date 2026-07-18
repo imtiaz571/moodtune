@@ -16,48 +16,18 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")
 gemini_service = GeminiService()
 spotify_service = SpotifyService()
 
-# Initialize Firebase Admin
-firebase_creds_json = os.getenv("FIREBASE_ADMIN_CREDENTIALS_JSON")
-db = None
-if firebase_creds_json:
-    try:
-        cred_dict = json.loads(firebase_creds_json)
-        cred = credentials.Certificate(cred_dict)
-        firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        print("Firebase Admin initialized successfully.")
-    except Exception as e:
-        print(f"Failed to initialize Firebase Admin: {e}")
-else:
-    print("FIREBASE_ADMIN_CREDENTIALS_JSON not found. Firebase not initialized.")
-
-def verify_firebase_token(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Unauthorized'}), 401
-        
-        id_token = auth_header.split('Bearer ')[1]
-        try:
-            decoded_token = auth.verify_id_token(id_token)
-            request.user = decoded_token
-        except Exception as e:
-            print(f"Token verification failed: {e}")
-            return jsonify({'error': 'Invalid token'}), 401
-            
-        return f(*args, **kwargs)
-    return decorated_function
+# Removed Firebase Admin initialization because user requested frontend-only Firebase
 
 @app.route("/")
 def index():
     firebase_config = {
-        "apiKey": os.getenv("FIREBASE_API_KEY", ""),
-        "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN", ""),
-        "projectId": os.getenv("FIREBASE_PROJECT_ID", ""),
-        "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET", ""),
-        "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID", ""),
-        "appId": os.getenv("FIREBASE_APP_ID", "")
+        "apiKey": "AIzaSyDn2o1586RY3VfWUqXmgBlvDjUdAfU10DM",
+        "authDomain": "moodtune-8257b.firebaseapp.com",
+        "projectId": "moodtune-8257b",
+        "storageBucket": "moodtune-8257b.firebasestorage.app",
+        "messagingSenderId": "267972221517",
+        "appId": "1:267972221517:web:038d5d614514918878da04",
+        "measurementId": "G-QBK0KW116M"
     }
     return render_template("index.html", firebase_config=firebase_config)
 
@@ -90,7 +60,6 @@ def auth_status():
     return jsonify({"logged_in": token_info is not None})
 
 @app.route("/api/chat", methods=["POST"])
-@verify_firebase_token
 def chat():
     data = request.json
     user_message = data.get("message")
@@ -150,20 +119,7 @@ def chat():
             "tracks": tracks
         }
         
-        # Save to Firestore
-        if db:
-            try:
-                uid = request.user.get('uid')
-                chat_doc = {
-                    "user_message": user_message,
-                    "reply": response_data["reply"],
-                    "mood": response_data["mood"],
-                    "tracks": response_data["tracks"],
-                    "timestamp": firestore.SERVER_TIMESTAMP
-                }
-                db.collection('users').document(uid).collection('chats').add(chat_doc)
-            except Exception as e:
-                print(f"Failed to save chat to Firestore: {e}")
+        # Firestore saving removed (Frontend-only Firebase setup)
                 
         return jsonify(response_data)
         
@@ -172,24 +128,9 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/history", methods=["GET"])
-@verify_firebase_token
 def get_history():
-    if not db:
-        return jsonify({"history": []})
-        
-    uid = request.user.get('uid')
-    try:
-        docs = db.collection('users').document(uid).collection('chats').order_by('timestamp').stream()
-        history = []
-        for doc in docs:
-            data = doc.to_dict()
-            if 'timestamp' in data and data['timestamp']:
-                data['timestamp'] = data['timestamp'].isoformat()
-            history.append(data)
-        return jsonify({"history": history})
-    except Exception as e:
-        print(f"Failed to fetch history: {e}")
-        return jsonify({"error": str(e)}), 500
+    # History disabled because Firebase Admin is not set up
+    return jsonify({"history": []})
 
 @app.route("/api/create_playlist", methods=["POST"])
 def create_playlist():
