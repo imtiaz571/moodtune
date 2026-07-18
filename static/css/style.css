@@ -553,7 +553,7 @@ body.chat-mode .input-wrapper {
 }
 
 .app-sidebar.collapsed {
-    width: 70px;
+    width: 80px;
 }
 
 /* Sidebar inner content fading when collapsed */
@@ -562,7 +562,7 @@ body.chat-mode .input-wrapper {
 .app-sidebar.collapsed .section-title,
 .app-sidebar.collapsed .chat-title,
 .app-sidebar.collapsed .chat-time,
-.app-sidebar.collapsed .logo,
+.app-sidebar.collapsed .logo-text,
 .app-sidebar.collapsed .mobile-only,
 .app-sidebar.collapsed #user-info,
 .app-sidebar.collapsed .spotify-auth-container .text,
@@ -571,6 +571,28 @@ body.chat-mode .input-wrapper {
     pointer-events: none;
     position: absolute; /* to not take up width */
 }
+
+.collapse-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.collapse-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.app-sidebar.collapsed .icon-close { display: none; }
+.app-sidebar.collapsed .icon-open { display: block !important; }
 
 /* Header Spacer to shift burger icon to left */
 .header-spacer { flex: 1; }
@@ -831,10 +853,18 @@ body.chat-mode .input-wrapper {
     .mobile-only {
         display: block !important;
     }
+    
+    .desktop-only {
+        display: none !important;
+    }
 }
 @media (min-width: 769px) {
     .mobile-only {
         display: none !important;
+    }
+    
+    .desktop-only {
+        display: flex !important;
     }
 }
 

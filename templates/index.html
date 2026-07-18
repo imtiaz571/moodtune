@@ -17,7 +17,21 @@
         <!-- Sidebar -->
         <aside class="app-sidebar" id="sidebar">
             <div class="sidebar-header">
-                <a href="/" class="logo" style="text-decoration: none;">MoodTunes</a>
+                <a href="/" class="logo" style="text-decoration: none;">
+                    <span class="logo-text">MoodTunes</span>
+                </a>
+                <button id="sidebar-collapse-btn" class="collapse-btn desktop-only" title="Close sidebar">
+                    <svg class="icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <polyline points="13 8 17 12 13 16"></polyline>
+                    </svg>
+                    <svg class="icon-open" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <polyline points="17 8 13 12 17 16"></polyline>
+                    </svg>
+                </button>
                 <button id="mobile-menu-close" class="hamburger-btn mobile-only" style="display: none;">&times;</button>
             </div>
             

@@ -24,6 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', () => sidebar.classList.add('open'));
     if (mobileMenuClose) mobileMenuClose.addEventListener('click', () => sidebar.classList.remove('open'));
 
+    const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+    if (sidebarCollapseBtn) {
+        sidebarCollapseBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                sidebarCollapseBtn.title = "Open sidebar";
+            } else {
+                sidebarCollapseBtn.title = "Close sidebar";
+            }
+        });
+    }
+
     if (newChatBtn) {
         newChatBtn.addEventListener('click', () => {
             currentSessionId = generateSessionId();
