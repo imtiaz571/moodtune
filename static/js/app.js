@@ -597,19 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     allSessions[sid].push(chat);
                 });
 
-                // Load the most recent session by default, or keep it on landing if preferred
-                // Let's load the most recent session if we have history
-                const sortedSessionIds = Object.keys(allSessions).sort((a, b) => {
-                    const tsA = allSessions[a][0].timestamp ? new Date(allSessions[a][0].timestamp) : new Date(0);
-                    const tsB = allSessions[b][0].timestamp ? new Date(allSessions[b][0].timestamp) : new Date(0);
-                    return tsB - tsA;
-                });
-                
-                if (sortedSessionIds.length > 0) {
-                    loadSession(sortedSessionIds[0]);
-                } else {
-                    renderSidebar();
-                }
+                renderSidebar();
             } else {
                 renderSidebar();
             }
