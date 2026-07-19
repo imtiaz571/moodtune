@@ -455,16 +455,22 @@ function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: {
       {tracks.length > 0 && (
         <div className="flex flex-col gap-2 mt-1">
           {tracks.map((t) => <TrackCard key={t.id} track={t} moodColor={moodColor} />)}
-          <button
-            onClick={() => onPlayAll(uris)}
-            className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
-            style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40` }}
+          <a
+            href={uris.length > 0 ? `https://open.spotify.com/track/${uris[0].split(":")[2]}` : "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              if (uris.length === 0) e.preventDefault();
+              onPlayAll(uris);
+            }}
+            className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 cursor-pointer block text-center"
+            style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40`, textDecoration: 'none' }}
             onMouseEnter={(e) => (e.currentTarget.style.background = `${moodColor}28`)}
             onMouseLeave={(e) => (e.currentTarget.style.background = `${moodColor}18`)}
           >
-            <Play size={16} />
+            <Play size={16} className="inline-block mr-1 -mt-0.5" />
             Play all songs
-          </button>
+          </a>
           <button
             onClick={() => onCreatePlaylist(uris)}
             className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
@@ -749,13 +755,8 @@ export default function App() {
     }
 
     addToast("Opening Spotify Web Player...", "info");
-    
-    // Convert spotify:track:ID to https://open.spotify.com/track/ID
-    const trackId = uris[0].split(":")[2];
-    const webUrl = `https://open.spotify.com/track/${trackId}`;
-    
-    // Open Spotify Web in a new tab
-    window.open(webUrl, '_blank');
+    // The browser natively opens the new tab because the button is now an <a href="..." target="_blank"> tag!
+    // We just need to queue the rest of the songs in the background.
     
     // Wait for the app to become the active device, then queue the rest
     let attempts = 0;
