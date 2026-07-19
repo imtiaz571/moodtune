@@ -20,15 +20,18 @@ import {
   UserProfile,
   playAllTracks,
 } from "../lib/api";
-import { initFirebase } from "../lib/firebase";
-import {
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  User,
-} from "firebase/auth";
+
+
+
+
+export type SpotifyUser = {
+  id: string;
+  name: string;
+  image: string | null;
+};
 
 // ─── Types ───────────────────────────────────────────────────────────────────
+
 
 type Mood =
   | "happy" | "chill" | "sad" | "energetic" | "romantic"
@@ -482,8 +485,8 @@ function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: {
 
 export default function App() {
   // Auth state
-  const [firebaseReady, setFirebaseReady] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  const [currentUser, setCurrentUser] = useState<SpotifyUser | null>(null);
   const [spotifyLoggedIn, setSpotifyLoggedIn] = useState(false);
 
   // Chat state
@@ -534,41 +537,29 @@ export default function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // ─── Init Firebase & auth ─────────────────────────────────────────────────
+  // ─── Init Auth ─────────────────────────────────────────────────
 
   useEffect(() => {
-    let unsubscribe: (() => void) | null = null;
-    initFirebase()
-      .then(({ auth }) => {
-        setFirebaseReady(true);
-        unsubscribe = onAuthStateChanged(auth, (user) => {
-          setCurrentUser(user);
-          if (user) {
-            loadHistory();
-            getUserProfile().then(profile => {
-              setUserProfile(profile);
-              if (!profile) {
-                setTempProfile({});
-                setShowSettingsModal(true);
-              }
-            }).catch(e => console.error("Failed to load profile:", e));
-          } else {
-            setConversations([]);
-            setHistoryDocs([]);
-            setUserProfile(null);
+    getAuthStatus().then((status) => {
+      setSpotifyLoggedIn(status.logged_in);
+      if (status.logged_in && status.user) {
+        setCurrentUser(status.user);
+        loadHistory();
+        getUserProfile().then(profile => {
+          setUserProfile(profile);
+          if (!profile || Object.keys(profile).length === 0) {
+            setTempProfile({});
+            setShowSettingsModal(true);
           }
-        });
-      })
-      .catch((err) => {
-        console.error("Firebase init failed:", err);
-        setFirebaseReady(true); // Still let the app render
-      });
-
-    // Check Spotify auth status
-    getAuthStatus().then((status) => setSpotifyLoggedIn(status.logged_in));
-
-    return () => { unsubscribe?.(); };
-  }, []);
+        }).catch(e => console.error("Failed to load profile:", e));
+      } else {
+        setCurrentUser(null);
+        setConversations([]);
+        setHistoryDocs([]);
+        setUserProfile(null);
+      }
+    });
+  }, [loadHistory]);
 
   // ─── Scroll to bottom ─────────────────────────────────────────────────────
 
@@ -590,27 +581,12 @@ export default function App() {
 
   // ─── Sign in / out ────────────────────────────────────────────────────────
 
-  const handleGoogleSignIn = async () => {
-    try {
-      const { auth, googleProvider } = await initFirebase();
-      await signInWithPopup(auth, googleProvider);
-      addToast("Signed in successfully!", "success");
-    } catch (e: unknown) {
-      if (e instanceof Error && e.message.includes("popup-closed")) return;
-      addToast("Sign-in failed. Please try again.", "error");
-    }
+  const handleSpotifySignIn = () => {
+    window.location.href = "/login";
   };
 
-  const handleSignOut = async () => {
-    try {
-      const { auth } = await initFirebase();
-      await signOut(auth);
-      setConversations([]);
-      setHistoryDocs([]);
-      addToast("Signed out.", "info");
-    } catch {
-      addToast("Sign-out failed.", "error");
-    }
+  const handleSignOut = () => {
+    window.location.href = "/logout";
   };
 
   // ─── Send message ─────────────────────────────────────────────────────────
@@ -682,15 +658,7 @@ export default function App() {
 
     // Clear Gemini history on server
     if (currentUser) {
-      try {
-        const token = await currentUser.getIdToken();
-        await fetch("/api/chat/clear", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${token}` },
-        });
-      } catch {
-        // Non-fatal
-      }
+      fetch("/api/chat/clear", { method: "POST" }).catch(() => {});
     }
   }, [currentUser]);
 
@@ -921,23 +889,23 @@ export default function App() {
       <div className="px-3 pb-4 flex-shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         {currentUser ? (
           <div className="flex items-center gap-2.5 px-2 py-3">
-            <img src={currentUser.photoURL ?? undefined} alt={currentUser.displayName ?? "User"}
+            <img src={currentUser.image ?? undefined} alt={currentUser.name ?? "User"}
               className="w-7 h-7 rounded-full flex-shrink-0 object-cover"
               onError={(e) => { (e.target as HTMLImageElement).src = ""; }}
             />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">{currentUser.displayName}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{currentUser.email}</p>
+              <p className="text-xs font-medium text-foreground truncate">{currentUser.name}</p>
+              <p className="text-[10px] text-muted-foreground truncate"></p>
             </div>
             <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Sign out">
               <LogOut size={14} />
             </button>
           </div>
         ) : (
-          <button onClick={handleGoogleSignIn}
+          <button onClick={handleSpotifySignIn}
             className="w-full flex items-center justify-center gap-2 mx-2 my-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:bg-accent active:scale-95"
             style={{ background: "rgba(255,255,255,0.07)", color: "#f0f0f8", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <GoogleIcon /> Sign in with Google
+            <GoogleIcon /> Log in with Spotify
           </button>
         )}
       </div>
@@ -1007,33 +975,20 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Spotify Connect */}
-            <a href="/login"
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:opacity-90 active:scale-95"
-              style={{
-                background: spotifyLoggedIn ? "#1DB95430" : "#1DB95420",
-                color: "#1DB954",
-                border: `1px solid ${spotifyLoggedIn ? "#1DB95460" : "#1DB95440"}`,
-              }}>
-              <SpotifyIcon size={14} />
-              {spotifyLoggedIn ? "Spotify Connected ✓" : "Connect Spotify"}
-            </a>
-
-            {/* Google Sign-In (shown only if not already signed in) */}
             {!currentUser ? (
-              <button onClick={handleGoogleSignIn}
+              <button onClick={handleSpotifySignIn}
                 className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:bg-accent active:scale-95"
                 style={{ background: "rgba(255,255,255,0.07)", color: "#f0f0f8", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <GoogleIcon /> Sign in
+                <SpotifyIcon size={14} /> Log in with Spotify
               </button>
             ) : (
               <div className="hidden sm:flex items-center gap-2 px-2 py-1.5 rounded-xl"
                 style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                {currentUser.photoURL && (
-                  <img src={currentUser.photoURL} alt={currentUser.displayName ?? "User"}
+                {currentUser.image && (
+                  <img src={currentUser.image} alt={currentUser.name ?? "User"}
                     className="w-5 h-5 rounded-full object-cover" />
                 )}
-                <span className="text-xs text-foreground">{currentUser.displayName?.split(" ")[0]}</span>
+                <span className="text-xs text-foreground">{currentUser.name?.split(" ")[0]}</span>
                 <button onClick={() => { setTempProfile(userProfile || {}); setShowSettingsModal(true); }} className="p-0.5 ml-1 text-muted-foreground hover:text-foreground transition-colors" title="Settings">
                   <Settings size={13} />
                 </button>
@@ -1043,10 +998,7 @@ export default function App() {
               </div>
             )}
 
-            {/* Mobile Spotify icon */}
-            <a href="/login" className="sm:hidden p-2 rounded-xl transition-colors hover:bg-accent" style={{ color: "#1DB954" }}>
-              <SpotifyIcon size={16} />
-            </a>
+
           </div>
         </header>
 
@@ -1067,10 +1019,10 @@ export default function App() {
               <p className="text-muted-foreground text-center text-sm mb-10 max-w-sm">
                 Tell me how you feel and I'll find the perfect soundtrack for this moment.
               </p>
-              {!currentUser && firebaseReady && (
+              {!currentUser && (
                 <div className="mb-8 px-5 py-3 rounded-2xl text-sm text-center"
                   style={{ background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.2)", color: "#a78bfa", maxWidth: 360 }}>
-                  💡 <button onClick={handleGoogleSignIn} className="underline font-semibold">Sign in with Google</button> to save your chat history and get personalized recommendations.
+                  💡 <button onClick={handleSpotifySignIn} className="underline font-semibold">Log in with Spotify</button> to save your chat history and get personalized recommendations.
                 </div>
               )}
               {/* Mood presets */}

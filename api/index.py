@@ -48,21 +48,14 @@ if firebase_creds_json:
 else:
     print("FIREBASE_ADMIN_CREDENTIALS_JSON not found. Firebase not initialized.")
 
-def verify_firebase_token(f):
+def verify_session(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
+        user_id = session.get("user_id")
+        if not user_id:
             return jsonify({'error': 'Unauthorized'}), 401
         
-        id_token = auth_header.split('Bearer ')[1]
-        try:
-            decoded_token = auth.verify_id_token(id_token)
-            request.user = decoded_token
-        except Exception as e:
-            print(f"Token verification failed: {e}")
-            return jsonify({'error': 'Invalid token'}), 401
-            
+        request.user = {'uid': user_id}
         return f(*args, **kwargs)
     return decorated_function
 
@@ -99,6 +92,17 @@ def callback():
         token_info = sp_oauth.get_access_token(code)
         session.permanent = True
         session["token_info"] = token_info
+        
+        # Fetch user profile using the new token to establish identity
+        sp_client = spotify_service.get_client(token_info)
+        user_info = sp_client.current_user()
+        session["user_id"] = user_info['id']
+        session["user_name"] = user_info.get('display_name')
+        if user_info.get('images'):
+            session["user_image"] = user_info['images'][0].get('url')
+        else:
+            session["user_image"] = None
+            
     except Exception as e:
         print("Error getting token:", e)
     return redirect(url_for("index"))
@@ -111,17 +115,27 @@ def logout():
 @app.route("/api/auth_status")
 def auth_status():
     token_info = session.get("token_info")
-    return jsonify({"logged_in": token_info is not None})
+    user_id = session.get("user_id")
+    if token_info and user_id:
+        return jsonify({
+            "logged_in": True, 
+            "user": {
+                "id": user_id,
+                "name": session.get("user_name"),
+                "image": session.get("user_image")
+            }
+        })
+    return jsonify({"logged_in": False, "user": None})
 
 @app.route("/api/chat/clear", methods=["POST"])
-@verify_firebase_token
+@verify_session
 def clear_chat_history():
     """Clears the in-memory Gemini conversation history to start a fresh chat."""
     gemini_service.clear_history()
     return jsonify({"success": True})
 
 @app.route("/api/chat", methods=["POST"])
-@verify_firebase_token
+@verify_session
 def chat():
     data = request.json
     user_message = data.get("message")
@@ -232,7 +246,7 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/history", methods=["GET"])
-@verify_firebase_token
+@verify_session
 def get_history():
     if not db:
         return jsonify({"history": []})
@@ -252,7 +266,7 @@ def get_history():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/chat/<session_id>", methods=["DELETE"])
-@verify_firebase_token
+@verify_session
 def delete_chat(session_id):
     if not db:
         return jsonify({"error": "Database not initialized"}), 500
@@ -276,7 +290,7 @@ def delete_chat(session_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/chat/<session_id>/rename", methods=["PUT"])
-@verify_firebase_token
+@verify_session
 def rename_chat(session_id):
     if not db:
         return jsonify({"error": "Database not initialized"}), 500
@@ -394,7 +408,7 @@ def create_playlist():
         return jsonify({"error": error_trace, "success": False}), 500
 
 @app.route("/api/profile", methods=["GET", "PUT"])
-@verify_firebase_token
+@verify_session
 def profile():
     if not db:
         return jsonify({"error": "Database not initialized"}), 500

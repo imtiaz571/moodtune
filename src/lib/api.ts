@@ -1,32 +1,4 @@
 // Typed API wrappers for all MoodTunes backend endpoints.
-// Each function attaches the Firebase ID token as a Bearer token.
-
-import { getFirebaseAuth } from "./firebase";
-
-async function getIdToken(): Promise<string | null> {
-  const auth = getFirebaseAuth();
-  if (!auth?.currentUser) return null;
-  try {
-    return await auth.currentUser.getIdToken();
-  } catch {
-    return null;
-  }
-}
-
-async function authFetch(
-  url: string,
-  options: RequestInit = {}
-): Promise<Response> {
-  const token = await getIdToken();
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
-  if (token) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
-  }
-  return fetch(url, { ...options, headers });
-}
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────
 
@@ -51,8 +23,9 @@ export async function sendChat(
   message: string,
   sessionId: string
 ): Promise<ChatResponse> {
-  const res = await authFetch("/api/chat", {
+  const res = await fetch("/api/chat", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, session_id: sessionId }),
   });
   if (!res.ok) {
@@ -75,7 +48,7 @@ export interface HistoryDoc {
 }
 
 export async function fetchHistory(): Promise<HistoryDoc[]> {
-  const res = await authFetch("/api/history");
+  const res = await fetch("/api/history");
   if (!res.ok) return [];
   const data = await res.json();
   return data.history ?? [];
@@ -84,7 +57,7 @@ export async function fetchHistory(): Promise<HistoryDoc[]> {
 // ─── Delete chat ──────────────────────────────────────────────────────────────
 
 export async function deleteChat(sessionId: string): Promise<void> {
-  await authFetch(`/api/chat/${encodeURIComponent(sessionId)}`, {
+  await fetch(`/api/chat/${encodeURIComponent(sessionId)}`, {
     method: "DELETE",
   });
 }
@@ -95,8 +68,9 @@ export async function renameChat(
   sessionId: string,
   newTitle: string
 ): Promise<void> {
-  await authFetch(`/api/chat/${encodeURIComponent(sessionId)}/rename`, {
+  await fetch(`/api/chat/${encodeURIComponent(sessionId)}/rename`, {
     method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title: newTitle }),
   });
 }
@@ -125,7 +99,7 @@ export async function createPlaylist(uris: string[]): Promise<PlaylistResult> {
 
 // ─── Spotify auth status ──────────────────────────────────────────────────────
 
-export async function getAuthStatus(): Promise<{ logged_in: boolean }> {
+export async function getAuthStatus(): Promise<{ logged_in: boolean, user?: { id: string, name: string, image: string | null } }> {
   const res = await fetch("/api/auth_status");
   if (!res.ok) return { logged_in: false };
   return res.json();
@@ -140,7 +114,7 @@ export interface UserProfile {
 }
 
 export async function getUserProfile(): Promise<UserProfile | null> {
-  const res = await authFetch("/api/profile");
+  const res = await fetch("/api/profile");
   if (!res.ok) return null;
   const data = await res.json();
   // Return null if empty object
@@ -149,8 +123,9 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 }
 
 export async function updateUserProfile(profile: UserProfile): Promise<boolean> {
-  const res = await authFetch("/api/profile", {
+  const res = await fetch("/api/profile", {
     method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(profile),
   });
   return res.ok;
