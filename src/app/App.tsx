@@ -18,6 +18,7 @@ import {
   getUserProfile,
   updateUserProfile,
   UserProfile,
+  playAllTracks,
 } from "../lib/api";
 import { initFirebase } from "../lib/firebase";
 import {
@@ -414,9 +415,11 @@ function TypingDots() {
 
 // ─── Message bubble ───────────────────────────────────────────────────────────
 
-function MessageBubble({ msg, moodColor, onCreatePlaylist }: {
-  msg: Message; moodColor: string;
+function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: { 
+  msg: Message; 
+  moodColor: string; 
   onCreatePlaylist: (uris: string[]) => void;
+  onPlayAll: (uris: string[]) => void;
 }) {
   if (msg.role === "user") {
     return (
@@ -449,6 +452,16 @@ function MessageBubble({ msg, moodColor, onCreatePlaylist }: {
       {tracks.length > 0 && (
         <div className="flex flex-col gap-2 mt-1">
           {tracks.map((t) => <TrackCard key={t.id} track={t} moodColor={moodColor} />)}
+          <button
+            onClick={() => onPlayAll(uris)}
+            className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+            style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40` }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = `${moodColor}28`)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = `${moodColor}18`)}
+          >
+            <Play size={16} />
+            Play all songs
+          </button>
           <button
             onClick={() => onCreatePlaylist(uris)}
             className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
@@ -756,6 +769,29 @@ export default function App() {
     }
   };
 
+  const handlePlayAll = async (uris: string[]) => {
+    if (!spotifyLoggedIn) {
+      addToast("Connect Spotify first.", "error");
+      window.location.href = "/login";
+      return;
+    }
+    if (uris.length === 0) {
+      addToast("No Spotify tracks available to play.", "error");
+      return;
+    }
+    try {
+      addToast("Connecting to Spotify...", "info");
+      const res = await playAllTracks(uris);
+      if (res.action === "queued") {
+        addToast("Songs added to your Spotify queue!", "success");
+      } else {
+        addToast("Playing now on your active Spotify device!", "success");
+      }
+    } catch (err: any) {
+      addToast(err.message || "Failed to play tracks. Make sure Spotify is open.", "error");
+    }
+  };
+
   // ─── Keyboard handler ─────────────────────────────────────────────────────
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1036,7 +1072,7 @@ export default function App() {
             /* Chat */
             <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
               {messages.map((msg) => (
-                <MessageBubble key={msg.id} msg={msg} moodColor={moodCfg.color} onCreatePlaylist={handleCreatePlaylist} />
+                <MessageBubble key={msg.id} msg={msg} moodColor={moodCfg.color} onCreatePlaylist={handleCreatePlaylist} onPlayAll={handlePlayAll} />
               ))}
               {isTyping && (
                 <div className="flex items-center gap-3">

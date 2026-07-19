@@ -305,6 +305,55 @@ def rename_chat(session_id):
         print(f"Failed to rename chat: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/play_all", methods=["POST"])
+def play_all():
+    token_info = session.get("token_info")
+    if not token_info:
+        return jsonify({"error": "not_logged_in", "success": False}), 401
+        
+    data = request.json
+    uris = data.get("uris", [])
+    
+    if not uris:
+        return jsonify({"error": "No tracks to play", "success": False}), 400
+        
+    sp_oauth = spotify_service.get_oauth_manager()
+    if sp_oauth.is_token_expired(token_info):
+        try:
+            token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+            session["token_info"] = token_info
+        except Exception as e:
+            print(f"Failed to refresh token: {e}")
+            session.pop("token_info", None)
+            return jsonify({"error": "not_logged_in", "success": False}), 401
+            
+    sp_client = spotify_service.get_client(token_info)
+    
+    try:
+        # Check current playback state
+        playback = sp_client.current_playback()
+        is_playing = playback is not None and playback.get('is_playing')
+        
+        if is_playing:
+            # Add all to queue if already listening
+            for uri in uris:
+                sp_client.add_to_queue(uri)
+            return jsonify({"success": True, "action": "queued"})
+        else:
+            # Start playing immediately
+            sp_client.start_playback(uris=uris)
+            return jsonify({"success": True, "action": "played"})
+            
+    except spotipy.exceptions.SpotifyException as e:
+        if e.http_status == 404 and "NO_ACTIVE_DEVICE" in str(e):
+            return jsonify({"error": "No active Spotify device found. Please open Spotify on your device first.", "success": False}), 404
+        elif e.http_status == 403:
+            return jsonify({"error": "Missing Spotify Premium or permissions. Re-login might be required.", "success": False}), 403
+        else:
+            return jsonify({"error": str(e), "success": False}), 500
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
 @app.route("/api/create_playlist", methods=["POST"])
 def create_playlist():
     token_info = session.get("token_info")

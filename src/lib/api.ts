@@ -151,3 +151,16 @@ export async function updateUserProfile(profile: UserProfile): Promise<boolean> 
   });
   return res.ok;
 }
+
+export async function playAllTracks(uris: string[]): Promise<{ success: boolean; action?: string; error?: string }> {
+  const res = await fetch(`${API_URL}/api/play_all`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uris }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to play/queue tracks");
+  }
+  return data;
+}
