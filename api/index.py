@@ -16,6 +16,7 @@ from firebase_admin import credentials, firestore, auth
 import threading
 import concurrent.futures
 from functools import wraps
+import spotipy
 
 load_dotenv()
 
