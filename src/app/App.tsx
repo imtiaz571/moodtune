@@ -335,7 +335,7 @@ function TrackCard({ track, moodColor }: { track: Track; moodColor: string }) {
       {/* Album art */}
       <div className="relative flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted" style={{ boxShadow: playing ? `0 0 14px ${moodColor}55` : "none" }}>
         <img src={track.albumArt} alt={track.title} className="w-full h-full object-cover" />
-        {track.previewUrl ? (
+        {track.previewUrl && (
           <>
             <button
               onClick={togglePlay}
@@ -358,20 +358,6 @@ function TrackCard({ track, moodColor }: { track: Track; moodColor: string }) {
               </svg>
             )}
           </>
-        ) : (
-          <a
-            href={track.spotifyUrl || "#"}
-            target="_blank"
-            rel="noreferrer"
-            className="absolute inset-0 flex flex-col items-center justify-center transition-opacity"
-            style={{ background: "rgba(0,0,0,0.3)", opacity: 0 }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0")}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLink size={16} className="text-white mb-1" />
-            <span className="text-[9px] font-semibold text-white tracking-wide uppercase">Full Track</span>
-          </a>
         )}
       </div>
 
