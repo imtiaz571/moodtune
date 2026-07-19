@@ -762,17 +762,22 @@ export default function App() {
         window.location.href = uris[0];
         
         // Wait for the app to open and register as an active device
-        setTimeout(async () => {
-          if (uris.length > 1) {
-            try {
-              // Queue the remaining tracks strictly
-              await playAllTracks(uris.slice(1), true);
-              addToast("Remaining songs added to your queue!", "success");
-            } catch (queueErr) {
+        let attempts = 0;
+        const tryQueue = async () => {
+          if (uris.length <= 1) return;
+          attempts++;
+          try {
+            await playAllTracks(uris.slice(1), true);
+            addToast("Remaining songs added to your queue!", "success");
+          } catch (queueErr) {
+            if (attempts < 5) {
+              setTimeout(tryQueue, 3000); // Retry after 3 seconds
+            } else {
               addToast("Failed to queue remaining songs.", "error");
             }
           }
-        }, 5000); // Wait 5 seconds for Spotify to fully launch and become active
+        };
+        setTimeout(tryQueue, 4000);
       } else {
         addToast(err.message || "Failed to play tracks. Make sure Spotify is open.", "error");
       }
