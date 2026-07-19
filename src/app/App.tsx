@@ -748,9 +748,14 @@ export default function App() {
       return;
     }
 
-    addToast("Opening Spotify on this device...", "info");
-    // Always open the Spotify app natively to guarantee playback starts on the local device
-    window.location.href = uris[0];
+    addToast("Opening Spotify Web Player...", "info");
+    
+    // Convert spotify:track:ID to https://open.spotify.com/track/ID
+    const trackId = uris[0].split(":")[2];
+    const webUrl = `https://open.spotify.com/track/${trackId}`;
+    
+    // Open Spotify Web in a new tab
+    window.open(webUrl, '_blank');
     
     // Wait for the app to become the active device, then queue the rest
     let attempts = 0;
