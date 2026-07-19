@@ -4,7 +4,7 @@ import {
   PanelLeftClose, PanelLeftOpen, Menu,
   Play, Pause, ListPlus, Sparkles, Clock, Heart,
   Zap, CloudRain, Sun, Flame, Trash2, Pencil, Check, X,
-  ExternalLink, LogOut,
+  ExternalLink, LogOut, Settings,
 } from "lucide-react";
 import {
   sendChat,
@@ -15,6 +15,9 @@ import {
   getAuthStatus,
   BackendTrack,
   HistoryDoc,
+  getUserProfile,
+  updateUserProfile,
+  UserProfile,
 } from "../lib/api";
 import { initFirebase } from "../lib/firebase";
 import {
@@ -486,6 +489,12 @@ export default function App() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [historyDocs, setHistoryDocs] = useState<HistoryDoc[]>([]);
 
+  // Profile state
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [tempProfile, setTempProfile] = useState<UserProfile>({});
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
   // Rename state
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -522,9 +531,17 @@ export default function App() {
           setCurrentUser(user);
           if (user) {
             loadHistory();
+            getUserProfile().then(profile => {
+              setUserProfile(profile);
+              if (!profile) {
+                setTempProfile({});
+                setShowSettingsModal(true);
+              }
+            }).catch(e => console.error("Failed to load profile:", e));
           } else {
             setConversations([]);
             setHistoryDocs([]);
+            setUserProfile(null);
           }
         });
       })
@@ -961,6 +978,9 @@ export default function App() {
                     className="w-5 h-5 rounded-full object-cover" />
                 )}
                 <span className="text-xs text-foreground">{currentUser.displayName?.split(" ")[0]}</span>
+                <button onClick={() => { setTempProfile(userProfile || {}); setShowSettingsModal(true); }} className="p-0.5 ml-1 text-muted-foreground hover:text-foreground transition-colors" title="Settings">
+                  <Settings size={13} />
+                </button>
                 <button onClick={handleSignOut} className="p-0.5 text-muted-foreground hover:text-foreground transition-colors" title="Sign out">
                   <LogOut size={13} />
                 </button>
@@ -1071,6 +1091,54 @@ export default function App() {
           </div>
         </div>
       </div>
+      
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(10px)" }}>
+          <div className="w-full max-w-md rounded-2xl p-6 relative" style={{ background: "rgba(13,13,24,0.95)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <button onClick={() => { if(userProfile) setShowSettingsModal(false); }} className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-white/5">
+              <X size={18} />
+            </button>
+            <h2 className="text-2xl font-bold text-foreground mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Your Profile</h2>
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed">Tell us about yourself so we can personalize your mood recommendations without having to ask you every time.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Age</label>
+                <input type="text" placeholder="e.g. 24" value={tempProfile.age || ""} onChange={e => setTempProfile({...tempProfile, age: e.target.value})} className="w-full px-3 py-2.5 rounded-xl text-sm bg-black/40 border border-white/10 text-foreground outline-none focus:border-white/20 transition-colors" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Preferred Language</label>
+                <input type="text" placeholder="e.g. English, Spanish, Hindi" value={tempProfile.language || ""} onChange={e => setTempProfile({...tempProfile, language: e.target.value})} className="w-full px-3 py-2.5 rounded-xl text-sm bg-black/40 border border-white/10 text-foreground outline-none focus:border-white/20 transition-colors" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Music Taste / Genres</label>
+                <input type="text" placeholder="e.g. Pop, Lofi, Rock" value={tempProfile.genre || ""} onChange={e => setTempProfile({...tempProfile, genre: e.target.value})} className="w-full px-3 py-2.5 rounded-xl text-sm bg-black/40 border border-white/10 text-foreground outline-none focus:border-white/20 transition-colors" />
+              </div>
+            </div>
+
+            <button 
+              onClick={async () => {
+                setIsSavingProfile(true);
+                const success = await updateUserProfile(tempProfile);
+                setIsSavingProfile(false);
+                if (success) {
+                  setUserProfile(tempProfile);
+                  setShowSettingsModal(false);
+                  addToast("Profile saved!", "success");
+                } else {
+                  addToast("Failed to save profile.", "error");
+                }
+              }}
+              disabled={isSavingProfile}
+              className="w-full mt-7 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              style={{ background: moodCfg.color, color: "#000" }}
+            >
+              {isSavingProfile ? "Saving..." : "Save Preferences"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

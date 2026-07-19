@@ -18,8 +18,8 @@ class MoodResponse(BaseModel):
         default="",
         description=(
             "A short, catchy title for this chat session. RULES: "
-            "1) If you are still asking onboarding questions (age, language, music taste) and have NOT yet collected ALL three, set this to an EMPTY STRING ''. "
-            "2) ONLY after you have collected ALL preferences AND are ready to give recommendations, generate a catchy title that combines the user's language + mood + genre "
+            "1) If you are asking questions because you don't know the user's age, language, or taste yet, set this to an EMPTY STRING ''. "
+            "2) If you are providing song recommendations (either because you have all preferences or just asked for them), generate a catchy title that combines the user's language + mood + genre "
             "(e.g. 'Bangla Moody Romantic Mix', 'English Chill Pop Vibes', 'Hindi Sad Lofi Mix'). Maximum 5 words."
         )
     )
@@ -107,7 +107,7 @@ class GeminiService:
                 recommendations=None
             )
 
-    def get_mood_recommendation(self, user_input: str) -> MoodResponse | None:
+    def get_mood_recommendation(self, user_input: str, user_prefs: dict = None) -> MoodResponse | None:
         if not self.client:
             raise Exception("Gemini API key is missing.")
 
@@ -148,21 +148,33 @@ class GeminiService:
             "based on the user's emotional state."
         )
 
-        # Ongoing Onboarding Instruction
-        system_instruction += (
-            "\n\nCRITICAL INSTRUCTION FOR ONBOARDING:\n"
-            "To personalize the experience, you MUST collect the user's: 1) Age, 2) Preferred Language, and 3) Music Taste.\n"
-            "CRITICAL RULE: You MUST ask these questions ONE BY ONE. DO NOT ask them all at once.\n"
-            "If this is the first message, warmly greet them, acknowledge their mood, and ONLY ask for their Age.\n"
-            "In the following turns, acknowledge their answer and ask the next missing piece of information.\n"
-            "DO NOT provide song recommendations until you have collected ALL THREE pieces of information.\n\n"
-            "CHAT TITLE RULE:\n"
-            "- While you are still collecting onboarding info (age, language, music taste), set chat_title to EMPTY STRING ''.\n"
-            "- The MOMENT you have all three pieces AND are about to give song recommendations, "
-            "you MUST set chat_title to a catchy name combining their language + mood + genre. "
-            "Examples: 'Bangla Moody Romantic Mix', 'English Chill Pop Vibes', 'Hindi Sad Lofi Mix'. "
-            "This is MANDATORY — never leave chat_title empty once you give recommendations."
-        )
+        if user_prefs and user_prefs.get('age') and user_prefs.get('language') and user_prefs.get('genre'):
+            system_instruction += (
+                f"\n\nCRITICAL INSTRUCTION FOR RECOMMENDATIONS:\n"
+                f"You ALREADY know the user's preferences:\n"
+                f"- Age: {user_prefs.get('age')}\n"
+                f"- Preferred Language: {user_prefs.get('language')}\n"
+                f"- Music Taste: {user_prefs.get('genre')}\n\n"
+                f"DO NOT ASK FOR THIS INFORMATION. Since you already know this, if the user expresses a mood or asks for music, "
+                f"IMMEDIATELY provide a playlist tailored to their mood, age, language, and music taste. "
+                f"Always set the chat_title when giving recommendations."
+            )
+        else:
+            # Ongoing Onboarding Instruction
+            system_instruction += (
+                "\n\nCRITICAL INSTRUCTION FOR ONBOARDING:\n"
+                "To personalize the experience, you MUST collect the user's: 1) Age, 2) Preferred Language, and 3) Music Taste.\n"
+                "CRITICAL RULE: You MUST ask these questions ONE BY ONE. DO NOT ask them all at once.\n"
+                "If this is the first message, warmly greet them, acknowledge their mood, and ONLY ask for their Age.\n"
+                "In the following turns, acknowledge their answer and ask the next missing piece of information.\n"
+                "DO NOT provide song recommendations until you have collected ALL THREE pieces of information.\n\n"
+                "CHAT TITLE RULE:\n"
+                "- While you are still collecting onboarding info (age, language, music taste), set chat_title to EMPTY STRING ''.\n"
+                "- The MOMENT you have all three pieces AND are about to give song recommendations, "
+                "you MUST set chat_title to a catchy name combining their language + mood + genre. "
+                "Examples: 'Bangla Moody Romantic Mix', 'English Chill Pop Vibes', 'Hindi Sad Lofi Mix'. "
+                "This is MANDATORY — never leave chat_title empty once you give recommendations."
+            )
 
         # Build contents with history
         contents = []

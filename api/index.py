@@ -130,8 +130,19 @@ def chat():
         return jsonify({"error": "Empty message"}), 400
         
     try:
+        # Fetch user preferences
+        user_prefs = None
+        if db:
+            uid = request.user.get('uid')
+            try:
+                doc = db.collection('users').document(uid).get()
+                if doc.exists:
+                    user_prefs = doc.to_dict()
+            except Exception as e:
+                print(f"Failed to fetch user profile: {e}")
+
         # Get structured output from Gemini
-        mood_response = gemini_service.get_mood_recommendation(user_message)
+        mood_response = gemini_service.get_mood_recommendation(user_message, user_prefs)
         
         if not mood_response:
             return jsonify({"error": "Failed to get response from Gemini"}), 500
@@ -335,6 +346,34 @@ def create_playlist():
         error_trace = traceback.format_exc()
         print(f"Playlist creation error: {error_trace}")
         return jsonify({"error": error_trace, "success": False}), 500
+
+@app.route("/api/profile", methods=["GET", "PUT"])
+@verify_firebase_token
+def profile():
+    if not db:
+        return jsonify({"error": "Database not initialized"}), 500
+        
+    uid = request.user.get('uid')
+    doc_ref = db.collection('users').document(uid)
+    
+    if request.method == "GET":
+        try:
+            doc = doc_ref.get()
+            if doc.exists:
+                return jsonify(doc.to_dict())
+            return jsonify({})
+        except Exception as e:
+            print(f"Failed to fetch profile: {e}")
+            return jsonify({"error": str(e)}), 500
+            
+    if request.method == "PUT":
+        data = request.get_json()
+        try:
+            doc_ref.set(data, merge=True)
+            return jsonify({"success": True})
+        except Exception as e:
+            print(f"Failed to update profile: {e}")
+            return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

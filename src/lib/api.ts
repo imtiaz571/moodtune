@@ -126,3 +126,28 @@ export async function getAuthStatus(): Promise<{ logged_in: boolean }> {
   if (!res.ok) return { logged_in: false };
   return res.json();
 }
+
+// ─── User Profile ─────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  age?: string;
+  genre?: string;
+  language?: string;
+}
+
+export async function getUserProfile(): Promise<UserProfile | null> {
+  const res = await authFetch("/api/profile");
+  if (!res.ok) return null;
+  const data = await res.json();
+  // Return null if empty object
+  if (Object.keys(data).length === 0) return null;
+  return data as UserProfile;
+}
+
+export async function updateUserProfile(profile: UserProfile): Promise<boolean> {
+  const res = await authFetch("/api/profile", {
+    method: "PUT",
+    body: JSON.stringify(profile),
+  });
+  return res.ok;
+}
