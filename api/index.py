@@ -330,6 +330,13 @@ def play_all():
     sp_client = spotify_service.get_client(token_info)
     
     try:
+        queue_only = data.get("queue_only", False)
+        
+        if queue_only:
+            for uri in uris:
+                sp_client.add_to_queue(uri)
+            return jsonify({"success": True, "action": "queued"})
+
         # Check current playback state
         playback = sp_client.current_playback()
         is_playing = playback is not None and playback.get('is_playing')
@@ -346,7 +353,7 @@ def play_all():
             
     except spotipy.exceptions.SpotifyException as e:
         if e.http_status == 404 and "NO_ACTIVE_DEVICE" in str(e):
-            return jsonify({"error": "No active Spotify device found. Please open Spotify on your device first.", "success": False}), 404
+            return jsonify({"error": "NO_ACTIVE_DEVICE", "message": "No active Spotify device found. Please open Spotify on your device first.", "success": False}), 404
         elif e.http_status == 403:
             return jsonify({"error": "Missing Spotify Premium or permissions. Re-login might be required.", "success": False}), 403
         else:

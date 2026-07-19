@@ -152,15 +152,19 @@ export async function updateUserProfile(profile: UserProfile): Promise<boolean> 
   return res.ok;
 }
 
-export async function playAllTracks(uris: string[]): Promise<{ success: boolean; action?: string; error?: string }> {
+export async function playAllTracks(uris: string[], queueOnly = false): Promise<{ success: boolean; action?: string; error?: string; message?: string }> {
   const res = await fetch(`${API_URL}/api/play_all`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ uris }),
+    body: JSON.stringify({ uris, queue_only: queueOnly }),
   });
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || "Failed to play/queue tracks");
+    const errorMsg = data.error || "Failed to play/queue tracks";
+    // We construct a specific error so the frontend can catch "NO_ACTIVE_DEVICE" exactly.
+    const err = new Error(errorMsg);
+    err.name = data.error; 
+    throw err;
   }
   return data;
 }

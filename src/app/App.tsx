@@ -788,7 +788,26 @@ export default function App() {
         addToast("Playing now on your active Spotify device!", "success");
       }
     } catch (err: any) {
-      addToast(err.message || "Failed to play tracks. Make sure Spotify is open.", "error");
+      if (err.name === "NO_ACTIVE_DEVICE" || err.message === "NO_ACTIVE_DEVICE") {
+        addToast("Opening Spotify and queueing tracks...", "info");
+        // Open the Spotify app natively by navigating to the first track's URI
+        window.location.href = uris[0];
+        
+        // Wait for the app to open and register as an active device
+        setTimeout(async () => {
+          if (uris.length > 1) {
+            try {
+              // Queue the remaining tracks strictly
+              await playAllTracks(uris.slice(1), true);
+              addToast("Remaining songs added to your queue!", "success");
+            } catch (queueErr) {
+              addToast("Failed to queue remaining songs.", "error");
+            }
+          }
+        }, 5000); // Wait 5 seconds for Spotify to fully launch and become active
+      } else {
+        addToast(err.message || "Failed to play tracks. Make sure Spotify is open.", "error");
+      }
     }
   };
 
