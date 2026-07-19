@@ -153,7 +153,7 @@ export async function updateUserProfile(profile: UserProfile): Promise<boolean> 
 }
 
 export async function playAllTracks(uris: string[], queueOnly = false): Promise<{ success: boolean; action?: string; error?: string; message?: string }> {
-  const res = await fetch(`${API_URL}/api/play_all`, {
+  const res = await fetch(`/api/play_all`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ uris, queue_only: queueOnly }),
