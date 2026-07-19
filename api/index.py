@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
 import os
+import sys
 import json
 from datetime import timedelta
 from dotenv import load_dotenv
+
+# Fix path for Vercel serverless deployment
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from gemini_service import GeminiService
 from spotify_service import SpotifyService
 import firebase_admin
