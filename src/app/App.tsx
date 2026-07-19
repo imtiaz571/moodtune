@@ -359,9 +359,19 @@ function TrackCard({ track, moodColor }: { track: Track; moodColor: string }) {
             )}
           </>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.2)" }}>
-            <Music2 size={16} className="text-white/50" />
-          </div>
+          <a
+            href={track.spotifyUrl || "#"}
+            target="_blank"
+            rel="noreferrer"
+            className="absolute inset-0 flex flex-col items-center justify-center transition-opacity"
+            style={{ background: "rgba(0,0,0,0.3)", opacity: 0 }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0")}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink size={16} className="text-white mb-1" />
+            <span className="text-[9px] font-semibold text-white tracking-wide uppercase">Full Track</span>
+          </a>
         )}
       </div>
 
