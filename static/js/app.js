@@ -30,8 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.toggle('collapsed');
             if (sidebar.classList.contains('collapsed')) {
                 sidebarCollapseBtn.title = "Open sidebar";
+                sidebar.style.width = '0px';
+                sidebar.style.borderRight = 'none';
             } else {
                 sidebarCollapseBtn.title = "Close sidebar";
+                sidebar.style.width = '260px';
+                sidebar.style.borderRight = '';
             }
         });
     }
@@ -235,30 +239,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function appendMessage(sender, text, isHtml = false, mood = null) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `message ${sender}-message fade-in`;
-
+        const msgWrapper = document.createElement('div');
         const theme = getMoodTheme(mood);
 
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-
-        // Apply mood-colored left border accent for bot messages
-        if (sender === 'bot' && mood && mood !== 'neutral') {
-            bubble.style.borderLeft = `3px solid ${theme.color}`;
-        }
-
-        if (isHtml) {
-            bubble.innerHTML = text;
+        if (sender === 'bot') {
+            msgWrapper.className = 'group flex w-full justify-start mb-1 fade-in';
+            msgWrapper.innerHTML = `
+              <div class="flex-shrink-0 w-7 h-7 rounded-full bg-foreground flex items-center justify-center mr-3 mt-1" ${mood && mood !== 'neutral' ? `style="background-color: ${theme.color};"` : ''}>
+                <i data-lucide="sparkles" class="text-background w-3.5 h-3.5"></i>
+              </div>
+              <div class="w-full max-w-[85%]">
+                <div class="text-sm space-y-1 text-foreground/90 leading-relaxed message-content-placeholder">
+                </div>
+              </div>
+            `;
+            const contentDiv = msgWrapper.querySelector('.message-content-placeholder');
+            if (isHtml) contentDiv.innerHTML = text;
+            else contentDiv.textContent = text;
         } else {
-            bubble.textContent = text;
+            msgWrapper.className = 'group flex w-full justify-end mb-1 fade-in';
+            msgWrapper.innerHTML = `
+              <div class="flex items-end gap-2 max-w-[72%]">
+                <div class="bg-card border border-border rounded-2xl rounded-br-sm px-4 py-3 text-sm text-foreground leading-relaxed message-content-placeholder">
+                </div>
+              </div>
+            `;
+            const contentDiv = msgWrapper.querySelector('.message-content-placeholder');
+            if (isHtml) contentDiv.innerHTML = text;
+            else contentDiv.textContent = text;
         }
 
-        msgDiv.appendChild(bubble);
-
-        chatBox.insertBefore(msgDiv, typingIndicator);
+        chatBox.insertBefore(msgWrapper, typingIndicator);
+        if (window.lucide) window.lucide.createIcons({ root: msgWrapper });
         scrollToBottom();
-        return msgDiv;
+        return msgWrapper;
     }
 
     function applyMoodGlow(mood) {
@@ -542,16 +556,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 : '• • •';
 
             const div = document.createElement('div');
-            div.className = `chat-item ${session.id === currentSessionId ? 'active' : ''}`;
+            div.className = "relative group mb-1";
             div.innerHTML = `
-                <div class="chat-item-content">
-                    <div class="chat-title" ${!hasTitle ? 'style="opacity: 0.4; font-style: italic;"' : ''}>${titleSnippet}</div>
-                    <div class="chat-time">${getTimeAgo(session.timestamp)}</div>
-                </div>
-                <button class="chat-item-menu-btn" title="Options">⋮</button>
-                <div class="chat-context-menu">
-                    <button class="ctx-rename">✏️ Rename</button>
-                    <button class="ctx-delete">🗑️ Delete</button>
+                <button class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${session.id === currentSessionId ? 'bg-sidebar-accent text-foreground' : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'}">
+                    <span class="truncate flex-1">${titleSnippet}</span>
+                    <span class="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-sidebar transition-all flex-shrink-0 chat-item-menu-btn" title="Options">
+                        <i data-lucide="more-horizontal" class="w-3.5 h-3.5"></i>
+                    </span>
+                </button>
+                <div class="chat-context-menu absolute right-2 top-8 z-50 bg-card border border-border rounded-xl shadow-xl py-1 min-w-[160px] hidden">
+                    <button class="ctx-rename w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent transition-colors text-foreground">✏️ Rename</button>
+                    <button class="ctx-delete w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent transition-colors text-red-500">🗑️ Delete</button>
                 </div>
             `;
 
@@ -562,14 +577,14 @@ document.addEventListener('DOMContentLoaded', () => {
             menuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 // Close any other open menus
-                document.querySelectorAll('.chat-context-menu.show').forEach(m => m.classList.remove('show'));
-                ctxMenu.classList.toggle('show');
+                document.querySelectorAll('.chat-context-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+                ctxMenu.classList.toggle('hidden');
             });
 
             // Rename button
             div.querySelector('.ctx-rename').addEventListener('click', async (e) => {
                 e.stopPropagation();
-                ctxMenu.classList.remove('show');
+                ctxMenu.classList.add('hidden');
                 const newName = prompt('Rename chat:', session.title || '');
                 if (newName !== null && newName.trim() !== '') {
                     const trimmedName = newName.trim();
@@ -604,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Delete button
             div.querySelector('.ctx-delete').addEventListener('click', async (e) => {
                 e.stopPropagation();
-                ctxMenu.classList.remove('show');
+                ctxMenu.classList.add('hidden');
                 if (confirm('Delete this chat?')) {
                     try {
                         const token = firebaseIdToken;
@@ -646,6 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             chatHistoryList.appendChild(div);
+            if (window.lucide) window.lucide.createIcons({ root: div });
         });
     }
 
@@ -705,6 +721,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Close context menus when clicking outside
     document.addEventListener('click', () => {
-        document.querySelectorAll('.chat-context-menu.show').forEach(m => m.classList.remove('show'));
+        document.querySelectorAll('.chat-context-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
     });
 });
