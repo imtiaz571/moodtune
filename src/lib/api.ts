@@ -116,7 +116,11 @@ export async function createPlaylist(uris: string[]): Promise<PlaylistResult> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ uris }),
   });
-  return res.json();
+  try {
+    return await res.json();
+  } catch (e) {
+    throw new Error(`Server error (${res.status}). If running locally, ensure Python backend is running.`);
+  }
 }
 
 // ─── Spotify auth status ──────────────────────────────────────────────────────
@@ -158,7 +162,14 @@ export async function playAllTracks(uris: string[], queueOnly = false): Promise<
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ uris, queue_only: queueOnly }),
   });
-  const data = await res.json();
+  
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    throw new Error(`Server error (${res.status}). If running locally, ensure Python backend is running.`);
+  }
+
   if (!res.ok) {
     const errorMsg = data.error || "Failed to play/queue tracks";
     // We construct a specific error so the frontend can catch "NO_ACTIVE_DEVICE" exactly.
