@@ -737,7 +737,7 @@ export default function App() {
     }
   };
 
-  const handlePlayAll = async (uris: string[]) => {
+  const handlePlayAll = (uris: string[]) => {
     if (!spotifyLoggedIn) {
       addToast("Connect Spotify first.", "error");
       window.location.href = "/login";
