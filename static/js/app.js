@@ -548,14 +548,63 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="chat-title" ${!hasTitle ? 'style="opacity: 0.4; font-style: italic;"' : ''}>${titleSnippet}</div>
                     <div class="chat-time">${getTimeAgo(session.timestamp)}</div>
                 </div>
-                <button class="chat-item-delete-btn ctx-delete" title="Delete" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; opacity: 0.7; transition: opacity 0.2s;">
-                    <img src="/static/img/icons8-trash.gif" alt="Delete" width="20" height="20">
-                </button>
+                <button class="chat-item-menu-btn" title="Options">⋮</button>
+                <div class="chat-context-menu">
+                    <button class="ctx-rename">✏️ Rename</button>
+                    <button class="ctx-delete">🗑️ Delete</button>
+                </div>
             `;
+
+            // Options menu button
+            const menuBtn = div.querySelector('.chat-item-menu-btn');
+            const ctxMenu = div.querySelector('.chat-context-menu');
+
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close any other open menus
+                document.querySelectorAll('.chat-context-menu.show').forEach(m => m.classList.remove('show'));
+                ctxMenu.classList.toggle('show');
+            });
+
+            // Rename button
+            div.querySelector('.ctx-rename').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                ctxMenu.classList.remove('show');
+                const newName = prompt('Rename chat:', session.title || '');
+                if (newName !== null && newName.trim() !== '') {
+                    const trimmedName = newName.trim();
+                    try {
+                        const token = firebaseIdToken;
+                        const response = await fetch(`/api/chat/${session.id}/rename`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ title: trimmedName })
+                        });
+                        
+                        if (response.ok) {
+                            if (allSessions[session.id]) {
+                                allSessions[session.id].forEach(c => c.chat_title = trimmedName);
+                            }
+                            renderSidebar();
+                        } else {
+                            const errData = await response.json();
+                            console.error('Failed to rename chat on server:', errData);
+                            alert('Failed to rename chat: ' + (errData.error || 'Unknown server error'));
+                        }
+                    } catch (err) {
+                        console.error('Error renaming chat:', err);
+                        alert('Error renaming chat: ' + err.message);
+                    }
+                }
+            });
 
             // Delete button
             div.querySelector('.ctx-delete').addEventListener('click', async (e) => {
                 e.stopPropagation();
+                ctxMenu.classList.remove('show');
                 if (confirm('Delete this chat?')) {
                     try {
                         const token = firebaseIdToken;
@@ -591,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             div.addEventListener('click', (e) => {
-                if (e.target.closest('.ctx-delete')) return;
+                if (e.target.closest('.chat-item-menu-btn') || e.target.closest('.chat-context-menu')) return;
                 loadSession(session.id);
                 if (window.innerWidth <= 768) sidebar.classList.remove('open');
             });

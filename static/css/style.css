@@ -1,10 +1,10 @@
 :root {
-    --bg-dark: #212121;
-    --bg-surface: #171717;
-    --bg-surface-light: #2f2f2f;
-    --text-main: #ececec;
-    --text-dim: #b4b4b4;
-    --spotify-green: #1DB954; /* Keep Spotify branding color for Spotify actions */
+    --bg-dark: #101114; /* Slightly different dark to match reference */
+    --bg-surface: #1E1E1E;
+    --bg-surface-light: #282828;
+    --text-main: #E8EAED;
+    --text-dim: #9AA0A6;
+    --spotify-green: #1DB954;
     --spotify-green-hover: #1ed760;
     --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -37,6 +37,8 @@ body {
 
 .app-layout {
     width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -165,21 +167,20 @@ body.chat-mode .input-wrapper {
 }
 
 .preset-chips {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 12px;
-    max-width: 800px;
-    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 650px;
 }
 
 .preset-chip {
-    background: var(--bg-surface-light);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-dim);
-    padding: 16px;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    text-align: left;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -191,23 +192,22 @@ body.chat-mode .input-wrapper {
     transform: translateY(-1px);
 }
 
-/* ─── Input Bar (ChatGPT style) ─── */
+/* ─── Input Bar (Gemini style) ─── */
 #chat-form {
     width: 100%;
-    max-width: 800px;
-    background: var(--bg-surface-light);
-    border-radius: 26px;
+    max-width: 650px;
+    background: #1E1F22;
+    border-radius: 30px;
     display: flex;
     align-items: center;
-    padding: 8px 8px 8px 24px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    padding: 6px 6px 6px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: background 0.3s, border-color 0.3s;
 }
 
 #chat-form:focus-within {
-    background: #383838;
-    border-color: rgba(255, 255, 255, 0.2);
+    background: #25262A;
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 #user-input {
@@ -261,9 +261,8 @@ body.chat-mode .input-wrapper {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 24px;
-    padding: 20px 20px;
+    padding: 20px 0;
     scroll-behavior: smooth;
 }
 
@@ -282,16 +281,15 @@ body.chat-mode .input-wrapper {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    width: 100%;
-    max-width: 800px;
+    max-width: 90%;
 }
 
 .bot-message {
-    justify-content: flex-start;
+    align-self: flex-start;
 }
 
 .user-message {
-    justify-content: flex-end;
+    align-self: flex-end;
     flex-direction: row-reverse;
 }
 
@@ -299,22 +297,20 @@ body.chat-mode .input-wrapper {
 .bubble {
     padding: 12px 16px;
     border-radius: 18px;
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 0.95rem;
+    line-height: 1.5;
     word-wrap: break-word;
-    max-width: 85%;
 }
 
 .bot-message .bubble {
     background: transparent;
     padding: 4px 0; /* Minimalist look, no bubble box for bot */
-    max-width: 100%;
 }
 
 .user-message .bubble {
     background: var(--bg-surface-light);
     color: var(--text-main);
-    border-radius: 20px;
+    border-bottom-right-radius: 4px;
 }
 
 .hidden {
@@ -546,7 +542,7 @@ body.chat-mode .input-wrapper {
 
 .app-sidebar {
     width: 280px;
-    background-color: var(--bg-surface);
+    background-color: #121212;
     display: flex;
     flex-direction: column;
     padding: 20px;
