@@ -283,18 +283,16 @@ function TrackCard({ track, moodColor }: { track: Track; moodColor: string }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (track.previewUrl) {
-      // Real audio playback
       if (!audioRef.current) {
         audioRef.current = new Audio(track.previewUrl);
         audioRef.current.onended = () => { setPlaying(false); setProgress(0); };
         audioRef.current.ontimeupdate = () => {
-          const dur = audioRef.current?.duration ?? 30;
-          const cur = audioRef.current?.currentTime ?? 0;
+          const dur = audioRef.current?.duration || 30;
+          const cur = audioRef.current?.currentTime || 0;
           setProgress((cur / dur) * 100);
         };
       }
@@ -302,30 +300,29 @@ function TrackCard({ track, moodColor }: { track: Track; moodColor: string }) {
         audioRef.current.pause();
         setPlaying(false);
       } else {
-        audioRef.current.play();
-        setPlaying(true);
-      }
-    } else {
-      // Fake progress when no preview URL
-      if (playing) {
-        setPlaying(false);
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      } else {
-        setPlaying(true);
-        setProgress(0);
-        intervalRef.current = setInterval(() => {
-          setProgress((p) => {
-            if (p >= 100) { clearInterval(intervalRef.current!); setPlaying(false); return 0; }
-            return p + 100 / 30;
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            setPlaying(true);
+          }).catch((err) => {
+            console.error("Audio playback error:", err);
+            setPlaying(false);
+            // Optionally, we could show a toast here if we passed it down.
+            // For now, we just fail gracefully.
+            alert("Audio preview could not be played. It might be blocked or unavailable.");
           });
-        }, 1000);
+        } else {
+          setPlaying(true);
+        }
       }
     }
   };
 
   useEffect(() => () => {
-    audioRef.current?.pause();
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
   }, []);
 
   return (
@@ -338,25 +335,33 @@ function TrackCard({ track, moodColor }: { track: Track; moodColor: string }) {
       {/* Album art */}
       <div className="relative flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted" style={{ boxShadow: playing ? `0 0 14px ${moodColor}55` : "none" }}>
         <img src={track.albumArt} alt={track.title} className="w-full h-full object-cover" />
-        <button
-          onClick={togglePlay}
-          className="absolute inset-0 flex items-center justify-center transition-opacity"
-          style={{ background: "rgba(0,0,0,0.4)", opacity: playing ? 1 : 0 }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-          onMouseLeave={(e) => { if (!playing) e.currentTarget.style.opacity = "0"; }}
-        >
-          {playing ? <Pause size={18} className="text-white" /> : <Play size={18} className="text-white" fill="white" />}
-        </button>
-        {playing && (
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 56 56">
-            <circle cx="28" cy="28" r="26" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
-            <circle cx="28" cy="28" r="26" fill="none" stroke={moodColor} strokeWidth="2"
-              strokeDasharray={`${2 * Math.PI * 26}`}
-              strokeDashoffset={`${2 * Math.PI * 26 * (1 - progress / 100)}`}
-              strokeLinecap="round" transform="rotate(-90 28 28)"
-              style={{ transition: "stroke-dashoffset 0.9s linear" }}
-            />
-          </svg>
+        {track.previewUrl ? (
+          <>
+            <button
+              onClick={togglePlay}
+              className="absolute inset-0 flex items-center justify-center transition-opacity"
+              style={{ background: "rgba(0,0,0,0.4)", opacity: playing ? 1 : 0 }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+              onMouseLeave={(e) => { if (!playing) e.currentTarget.style.opacity = "0"; }}
+            >
+              {playing ? <Pause size={18} className="text-white" /> : <Play size={18} className="text-white" fill="white" />}
+            </button>
+            {playing && (
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 56 56">
+                <circle cx="28" cy="28" r="26" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
+                <circle cx="28" cy="28" r="26" fill="none" stroke={moodColor} strokeWidth="2"
+                  strokeDasharray={`${2 * Math.PI * 26}`}
+                  strokeDashoffset={`${2 * Math.PI * 26 * (1 - progress / 100)}`}
+                  strokeLinecap="round" transform="rotate(-90 28 28)"
+                  style={{ transition: "stroke-dashoffset 0.9s linear" }}
+                />
+              </svg>
+            )}
+          </>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.2)" }}>
+            <Music2 size={16} className="text-white/50" />
+          </div>
         )}
       </div>
 
