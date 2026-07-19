@@ -747,41 +747,28 @@ export default function App() {
       addToast("No Spotify tracks available to play.", "error");
       return;
     }
-    try {
-      addToast("Connecting to Spotify...", "info");
-      const res = await playAllTracks(uris);
-      if (res.action === "queued") {
-        addToast("Songs added to your Spotify queue!", "success");
-      } else {
-        addToast("Playing now on your active Spotify device!", "success");
+
+    addToast("Opening Spotify on this device...", "info");
+    // Always open the Spotify app natively to guarantee playback starts on the local device
+    window.location.href = uris[0];
+    
+    // Wait for the app to become the active device, then queue the rest
+    let attempts = 0;
+    const tryQueue = async () => {
+      if (uris.length <= 1) return;
+      attempts++;
+      try {
+        await playAllTracks(uris.slice(1), true);
+        addToast("Remaining songs added to your queue!", "success");
+      } catch (queueErr) {
+        if (attempts < 5) {
+          setTimeout(tryQueue, 3000); // Retry after 3 seconds
+        } else {
+          addToast("Failed to queue remaining songs.", "error");
+        }
       }
-    } catch (err: any) {
-      if (err.name === "NO_ACTIVE_DEVICE" || err.message === "NO_ACTIVE_DEVICE") {
-        addToast("Opening Spotify and queueing tracks...", "info");
-        // Open the Spotify app natively by navigating to the first track's URI
-        window.location.href = uris[0];
-        
-        // Wait for the app to open and register as an active device
-        let attempts = 0;
-        const tryQueue = async () => {
-          if (uris.length <= 1) return;
-          attempts++;
-          try {
-            await playAllTracks(uris.slice(1), true);
-            addToast("Remaining songs added to your queue!", "success");
-          } catch (queueErr) {
-            if (attempts < 5) {
-              setTimeout(tryQueue, 3000); // Retry after 3 seconds
-            } else {
-              addToast("Failed to queue remaining songs.", "error");
-            }
-          }
-        };
-        setTimeout(tryQueue, 4000);
-      } else {
-        addToast(err.message || "Failed to play tracks. Make sure Spotify is open.", "error");
-      }
-    }
+    };
+    setTimeout(tryQueue, 4000);
   };
 
   // ─── Keyboard handler ─────────────────────────────────────────────────────
