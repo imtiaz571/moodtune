@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask_cors import CORS
 import os
 import json
 from datetime import timedelta
@@ -16,6 +17,13 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")
 app.permanent_session_lifetime = timedelta(days=30)
+
+# Allow requests from Vite dev server and production origins
+CORS(app, supports_credentials=True, origins=[
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://moodtune-nine.vercel.app",
+])
 
 gemini_service = GeminiService()
 spotify_service = SpotifyService()
@@ -66,6 +74,20 @@ def index():
     }
     return render_template("index.html", firebase_config=firebase_config)
 
+@app.route("/api/firebase_config")
+def firebase_config():
+    """Serves Firebase client config to the React frontend."""
+    config = {
+        "apiKey": os.getenv("FIREBASE_API_KEY", ""),
+        "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN", ""),
+        "projectId": os.getenv("FIREBASE_PROJECT_ID", ""),
+        "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET", ""),
+        "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID", ""),
+        "appId": os.getenv("FIREBASE_APP_ID", ""),
+        "measurementId": os.getenv("FIREBASE_MEASUREMENT_ID", "")
+    }
+    return jsonify(config)
+
 @app.route("/login")
 def login():
     sp_oauth = spotify_service.get_oauth_manager()
@@ -94,6 +116,13 @@ def logout():
 def auth_status():
     token_info = session.get("token_info")
     return jsonify({"logged_in": token_info is not None})
+
+@app.route("/api/chat/clear", methods=["POST"])
+@verify_firebase_token
+def clear_chat_history():
+    """Clears the in-memory Gemini conversation history to start a fresh chat."""
+    gemini_service.clear_history()
+    return jsonify({"success": True})
 
 @app.route("/api/chat", methods=["POST"])
 @verify_firebase_token
