@@ -890,30 +890,7 @@ export default function App() {
         )}
       </div>
 
-      {/* User */}
-      <div className="px-3 pb-4 flex-shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        {currentUser ? (
-          <div className="flex items-center gap-2.5 px-2 py-3">
-            <img src={currentUser.image ?? undefined} alt={currentUser.name ?? "User"}
-              className="w-7 h-7 rounded-full flex-shrink-0 object-cover"
-              onError={(e) => { (e.target as HTMLImageElement).src = ""; }}
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">{currentUser.name}</p>
-              <p className="text-[10px] text-muted-foreground truncate"></p>
-            </div>
-            <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Sign out">
-              <LogOut size={14} />
-            </button>
-          </div>
-        ) : (
-          <button onClick={handleSpotifySignIn}
-            className="w-full flex items-center justify-center gap-2 mx-2 my-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:bg-accent active:scale-95"
-            style={{ background: "rgba(255,255,255,0.07)", color: "#f0f0f8", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <GoogleIcon /> Log in with Spotify
-          </button>
-        )}
-      </div>
+
     </div>
   );
 
