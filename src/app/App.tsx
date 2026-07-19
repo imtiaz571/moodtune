@@ -559,7 +559,7 @@ export default function App() {
         setUserProfile(null);
       }
     });
-  }, [loadHistory]);
+  }, []);
 
   // ─── Scroll to bottom ─────────────────────────────────────────────────────
 
