@@ -337,19 +337,9 @@ def play_all():
                 sp_client.add_to_queue(uri)
             return jsonify({"success": True, "action": "queued"})
 
-        # Check current playback state
-        playback = sp_client.current_playback()
-        is_playing = playback is not None and playback.get('is_playing')
-        
-        if is_playing:
-            # Add all to queue if already listening
-            for uri in uris:
-                sp_client.add_to_queue(uri)
-            return jsonify({"success": True, "action": "queued"})
-        else:
-            # Start playing immediately
-            sp_client.start_playback(uris=uris)
-            return jsonify({"success": True, "action": "played"})
+        # Always start playing the tracks (plays first, queues the rest)
+        sp_client.start_playback(uris=uris)
+        return jsonify({"success": True, "action": "played"})
             
     except spotipy.exceptions.SpotifyException as e:
         if e.http_status == 404 and "NO_ACTIVE_DEVICE" in str(e):
