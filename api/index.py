@@ -348,8 +348,19 @@ def play_all():
         queue_only = data.get("queue_only", False)
         
         if queue_only:
+            # Fallback: if no active device, try to use any available device
+            device_id = None
+            try:
+                devices = sp_client.devices().get('devices', [])
+                if devices:
+                    active_device = next((d for d in devices if d['is_active']), None)
+                    if not active_device:
+                        device_id = devices[0]['id']
+            except Exception as d_err:
+                print(f"Error fetching devices for queue: {d_err}")
+                
             for uri in uris:
-                sp_client.add_to_queue(uri)
+                sp_client.add_to_queue(uri, device_id=device_id)
             return jsonify({"success": True, "action": "queued"})
 
         # Always start playing the tracks (plays first, queues the rest)

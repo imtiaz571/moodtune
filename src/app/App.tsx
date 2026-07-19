@@ -760,11 +760,11 @@ export default function App() {
       try {
         await playAllTracks(uris.slice(1), true);
         addToast("Remaining songs added to your queue!", "success");
-      } catch (queueErr) {
-        if (attempts < 5) {
+      } catch (queueErr: any) {
+        if (attempts < 10) {
           setTimeout(tryQueue, 3000); // Retry after 3 seconds
         } else {
-          addToast("Failed to queue remaining songs.", "error");
+          addToast(queueErr.message || "Failed to queue remaining songs.", "error");
         }
       }
     };
