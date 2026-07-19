@@ -804,15 +804,8 @@ export default function App() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Logo + actions */}
-      <div className="px-3 pt-4 pb-3 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: moodCfg.color + "22", border: `1px solid ${moodCfg.color}44` }}>
-            <Music2 size={14} style={{ color: moodCfg.color }} />
-          </div>
-          <span className="font-semibold text-sm text-foreground">MoodTunes</span>
-        </div>
+      {/* Actions */}
+      <div className="px-3 pt-4 pb-3 flex items-center justify-end flex-shrink-0">
         <div className="flex items-center gap-1">
           <button onClick={startNewChat} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="New chat">
             <Plus size={16} />
