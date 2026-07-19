@@ -7,6 +7,8 @@ from gemini_service import GeminiService
 from spotify_service import SpotifyService
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
+import threading
+import concurrent.futures
 from functools import wraps
 
 load_dotenv()
@@ -129,7 +131,7 @@ def chat():
         
         tracks = []
         if mood_response.recommendations:
-            for rec in mood_response.recommendations:
+            def fetch_track(rec):
                 track_data = {
                     "title": rec.title,
                     "artist": rec.artist,
@@ -145,8 +147,15 @@ def chat():
                     sp_match = spotify_service.search_track(sp_client, rec.title, rec.artist)
                     if sp_match:
                         track_data.update(sp_match)
-                        
-                tracks.append(track_data)
+                return track_data
+
+            # Use ThreadPoolExecutor for concurrent Spotify searches
+            if sp_client:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+                    tracks = list(executor.map(fetch_track, mood_response.recommendations))
+            else:
+                for rec in mood_response.recommendations:
+                    tracks.append(fetch_track(rec))
             
         response_data = {
             "reply": mood_response.reply,
@@ -169,9 +178,16 @@ def chat():
                     "tracks": response_data["tracks"],
                     "timestamp": firestore.SERVER_TIMESTAMP
                 }
-                db.collection('users').document(uid).collection('chats').add(chat_doc)
+                
+                def save_to_firestore(uid, chat_doc):
+                    try:
+                        db.collection('users').document(uid).collection('chats').add(chat_doc)
+                    except Exception as e:
+                        print(f"Failed to save chat to Firestore (background): {e}")
+                
+                threading.Thread(target=save_to_firestore, args=(uid, chat_doc)).start()
             except Exception as e:
-                print(f"Failed to save chat to Firestore: {e}")
+                print(f"Failed to prepare chat for Firestore: {e}")
                 
         return jsonify(response_data)
         
