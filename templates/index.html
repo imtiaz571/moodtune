@@ -5,215 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MoodTunes</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              background: '#212121',
-              foreground: '#E8EAED',
-              card: '#2f2f2f',
-              sidebar: '#171717',
-              'sidebar-accent': 'rgba(255,255,255,0.1)',
-              'sidebar-border': 'rgba(255,255,255,0.06)',
-              border: 'rgba(255,255,255,0.1)',
-              muted: 'rgba(255,255,255,0.1)',
-              'muted-foreground': '#717182',
-              accent: 'rgba(255,255,255,0.1)',
-              ring: 'oklch(0.439 0 0)',
-            }
-          }
-        }
-      }
-    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script>
         window.FIREBASE_CONFIG = {{ firebase_config | tojson | safe }};
     </script>
 </head>
-<body class="bg-background text-foreground font-sans overflow-hidden" style="font-family: 'Inter', sans-serif;">
+<body class="landing-mode">
     <canvas id="glcanvas"></canvas>
     
-    <div class="flex h-screen w-screen overflow-hidden app-container">
-      
-      <!-- Sidebar -->
-      <aside id="sidebar" class="app-sidebar flex flex-col flex-shrink-0 transition-all duration-300 overflow-hidden bg-sidebar border-r border-sidebar-border" style="width: 260px;">
-        <div class="flex flex-col h-full w-[260px]">
-          <!-- Top actions -->
-          <div class="flex items-center justify-between px-3 pt-3 pb-2 sidebar-header">
-            <button id="sidebar-collapse-btn" class="p-2 rounded-lg hover:bg-sidebar-accent text-muted-foreground hover:text-foreground transition-colors desktop-only">
-              <i data-lucide="panel-left-close"></i>
-            </button>
-            <button id="mobile-menu-close" class="p-2 rounded-lg hover:bg-sidebar-accent text-muted-foreground hover:text-foreground transition-colors mobile-only" style="display: none;">
-              <i data-lucide="x"></i>
-            </button>
-            <div class="flex items-center gap-1">
-              <button class="p-2 rounded-lg hover:bg-sidebar-accent text-muted-foreground hover:text-foreground transition-colors">
-                <i data-lucide="search" class="w-[18px] h-[18px]"></i>
-              </button>
-              <button id="new-chat-btn" class="p-2 rounded-lg hover:bg-sidebar-accent text-muted-foreground hover:text-foreground transition-colors">
-                <i data-lucide="plus" class="w-[18px] h-[18px]"></i>
-              </button>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="/" class="logo" style="text-decoration: none;">
+                    <span class="logo-text">MoodTunes</span>
+                </a>
+                <button id="sidebar-collapse-btn" class="collapse-btn desktop-only" title="Close sidebar">
+                    <svg class="icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <polyline points="13 8 17 12 13 16"></polyline>
+                    </svg>
+                    <svg class="icon-open" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <polyline points="17 8 13 12 17 16"></polyline>
+                    </svg>
+                </button>
+                <button id="mobile-menu-close" class="hamburger-btn mobile-only" style="display: none;">&times;</button>
             </div>
-          </div>
-          
-          <div class="px-3 pb-2 search-container hidden">
-            <input type="text" id="search-chats" placeholder="Search chats..." class="w-full px-3 py-2 text-sm rounded-lg bg-muted text-foreground placeholder-muted-foreground outline-none border border-border focus:border-ring/40 transition-colors">
-          </div>
-          
-          <!-- Conversation list -->
-          <div class="flex-1 overflow-y-auto px-2 pb-2 scrollbar-hide recent-chats-container" style="scrollbar-width: none;">
-             <p class="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-2 py-2 section-title">Recent Chats</p>
-             <div id="chat-history-list" class="flex flex-col gap-1">
-                <!-- dynamic chats -->
-             </div>
-          </div>
-          
-          <!-- User section / Footer -->
-          <div class="border-t border-sidebar-border px-2 py-2 sidebar-footer">
-            <!-- Firebase User Profile will be injected here, but for now we put the sign in button -->
-            <div id="auth-container" class="firebase-auth-container w-full">
-              <button id="firebase-login-btn" class="w-full flex items-center justify-center gap-3 px-3 py-2 rounded-lg bg-sidebar-accent hover:bg-accent transition-colors text-sm text-foreground">
-                Sign in with Google
-              </button>
-              <button id="firebase-logout-btn" class="w-full flex items-center justify-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-accent transition-colors text-sm text-red-500" style="display: none;">
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main area -->
-      <div class="flex flex-col flex-1 min-w-0 relative app-layout">
-        
-        <!-- Header -->
-        <header class="app-header flex items-center justify-between px-4 py-3 flex-shrink-0 bg-background">
-          <div class="flex items-center gap-2">
-            <button id="mobile-menu-btn" class="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors mr-1 mobile-only" style="display: none;">
-              <i data-lucide="panel-left-open"></i>
+            
+            <button id="new-chat-btn" class="new-chat-btn">
+                <span class="icon">+</span>
+                <span class="text">New Chat</span>
             </button>
             
-            <a href="/" class="logo text-lg font-semibold flex items-center gap-2 text-white">
-              MoodTunes
-            </a>
-          </div>
-          
-          <div class="flex items-center gap-1 auth-buttons">
-            <div id="spotify-auth-container" class="spotify-auth-container">
-              <!-- populated by JS -->
+            <div class="search-container">
+                <input type="text" id="search-chats" placeholder="Search chats...">
             </div>
-          </div>
-        </header>
-
-        <!-- Chat Area / Main Content -->
-        <main class="main-content flex-1 overflow-y-auto relative" style="scrollbar-width: none;">
-          
-          <!-- Landing Hero -->
-          <div class="flex flex-col items-center justify-center h-full px-4 pb-8 landing-hero" id="landing-hero">
-            <div class="w-12 h-12 rounded-full bg-foreground flex items-center justify-center mb-6">
-              <i data-lucide="sparkles" class="text-background w-6 h-6"></i>
-            </div>
-            <h1 class="text-2xl font-semibold text-foreground mb-8 text-center">Your Perfect Music Finding companion!</h1>
             
-            <div class="preset-chips-container grid grid-cols-1 md:grid-cols-2 gap-2 max-w-lg w-full" id="preset-chips-container">
-              <button class="preset-chip flex items-start gap-3 px-4 py-3 rounded-xl bg-card hover:bg-accent text-left transition-colors border border-border">
-                <span class="text-muted-foreground mt-0.5 text-xs">✦</span>
-                <span class="text-sm text-foreground/80 leading-snug">I'm feeling super happy today!</span>
-              </button>
-              <button class="preset-chip flex items-start gap-3 px-4 py-3 rounded-xl bg-card hover:bg-accent text-left transition-colors border border-border">
-                <span class="text-muted-foreground mt-0.5 text-xs">✦</span>
-                <span class="text-sm text-foreground/80 leading-snug">A bit stressed and need to relax</span>
-              </button>
-              <button class="preset-chip flex items-start gap-3 px-4 py-3 rounded-xl bg-card hover:bg-accent text-left transition-colors border border-border">
-                <span class="text-muted-foreground mt-0.5 text-xs">✦</span>
-                <span class="text-sm text-foreground/80 leading-snug">Feeling nostalgic for the past</span>
-              </button>
-              <button class="preset-chip flex items-start gap-3 px-4 py-3 rounded-xl bg-card hover:bg-accent text-left transition-colors border border-border">
-                <span class="text-muted-foreground mt-0.5 text-xs">✦</span>
-                <span class="text-sm text-foreground/80 leading-snug">Just want some chill vibes</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Chat Area (Hidden initially) -->
-          <div class="chat-area hidden max-w-3xl mx-auto px-4 py-6 space-y-6 w-full" id="chat-area">
-            <div class="chat-box flex flex-col space-y-6 w-full" id="chat-box">
-              
-              <!-- Typing Indicator -->
-              <div class="typing-indicator hidden flex items-start gap-3" id="typing-indicator">
-                <div class="flex-shrink-0 w-7 h-7 rounded-full bg-foreground flex items-center justify-center">
-                  <i data-lucide="sparkles" class="text-background w-3.5 h-3.5"></i>
+            <div class="recent-chats-container">
+                <h3 class="section-title">Recent Chats</h3>
+                <div id="chat-history-list" class="chat-list">
+                    <!-- Dynamic chat items will go here -->
                 </div>
-                <div class="flex items-center gap-1 px-1 py-2 typing-bubble">
-                  <span class="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style="animation-delay: 0s; animation-duration: 0.8s;"></span>
-                  <span class="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style="animation-delay: 0.15s; animation-duration: 0.8s;"></span>
-                  <span class="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style="animation-delay: 0.3s; animation-duration: 0.8s;"></span>
-                </div>
-              </div>
-
             </div>
-          </div>
+            
+            <div class="sidebar-footer">
+                <!-- Auth moved to header -->
+            </div>
+        </aside>
+
+        <div class="app-layout">
+            <header class="app-header" style="display: flex; justify-content: space-between; padding: 20px; align-items: center; width: 100%; box-sizing: border-box;">
+                <button id="mobile-menu-btn" class="hamburger-btn mobile-only" style="display: none;">☰</button>
+                <div style="flex: 1;"></div>
+                <div class="auth-buttons" style="display: flex; gap: 10px; align-items: center;">
+                    <div id="spotify-auth-container" class="spotify-auth-container">
+                        <!-- Will be populated by JS -->
+                    </div>
+                    
+                    <div id="auth-container" class="firebase-auth-container">
+                        <button id="firebase-login-btn" class="auth-btn">Sign in with Google</button>
+                        <button id="firebase-logout-btn" class="auth-btn" style="display: none; background: transparent; border: 1px solid rgba(255,68,68,0.5); color: #ff4444;">Sign Out</button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main-content">
+            <div class="landing-hero" id="landing-hero">
+                <h1>Your Perfect Music Finding companion!</h1>
+            </div>
+
+            <div class="chat-area hidden" id="chat-area">
+                <div class="chat-box" id="chat-box">
+                    <!-- Chat messages will go here -->
+                    
+                    <div class="typing-indicator hidden" id="typing-indicator">
+                        <div class="bubble typing-bubble">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-wrapper" id="input-wrapper">
+                <form id="chat-form">
+                    <input type="text" id="user-input" placeholder="" autocomplete="off" required />
+                    <button type="submit" id="send-btn" title="Send">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 10 4 15 9 20"></polyline>
+                            <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <div class="preset-chips-container" id="preset-chips-container">
+                <div class="preset-chips">
+                    <button class="preset-chip">I'm feeling super happy today!</button>
+                    <button class="preset-chip">A bit stressed and need to relax</button>
+                    <button class="preset-chip">Feeling nostalgic for the past</button>
+                    <button class="preset-chip">Just want some chill vibes</button>
+                </div>
+            </div>
         </main>
-        
-        <!-- Input area -->
-        <div class="input-wrapper flex-shrink-0 px-4 pb-4 pt-2 bg-background w-full" id="input-wrapper">
-          <div class="max-w-3xl mx-auto w-full">
-            <div class="rounded-2xl border border-border transition-colors bg-card focus-within:border-gray-500">
-              <form id="chat-form" class="flex flex-col">
-                <div class="px-4 pt-3.5 pb-1 flex w-full">
-                  <input type="text" id="user-input" placeholder="Message MoodTunes" autocomplete="off" required
-                         class="w-full resize-none text-sm text-foreground placeholder-muted-foreground bg-transparent outline-none leading-relaxed min-h-[24px]">
-                </div>
-                
-                <div class="flex items-center justify-between px-3 pb-3 pt-1">
-                  <div class="flex items-center gap-1">
-                    <button type="button" class="p-2 rounded-xl hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Attach file">
-                      <i data-lucide="paperclip" class="w-[17px] h-[17px]"></i>
-                    </button>
-                    <button type="button" class="p-2 rounded-xl hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
-                      <i data-lucide="sparkles" class="w-[17px] h-[17px]"></i>
-                    </button>
-                  </div>
-
-                  <div class="flex items-center gap-2">
-                    <button type="submit" id="send-btn" class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-foreground text-background hover:opacity-90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed">
-                      <i data-lucide="send" class="w-[15px] h-[15px]"></i>
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-            <p class="text-center text-[11px] text-muted-foreground mt-2.5">
-              MoodTunes can make mistakes. Consider checking important information.
-            </p>
-          </div>
-        </div>
-      </div>
+    </div>
     </div>
     
     <!-- Template for track cards (hidden) -->
     <template id="track-card-template">
-        <div class="track-card flex items-center gap-3 bg-card border border-border p-2 rounded-xl transition-colors hover:bg-accent my-3">
-            <div class="track-art-wrapper relative w-12 h-12 flex-shrink-0 rounded-md overflow-hidden">
-                <img class="track-img w-12 h-12 object-cover block bg-gray-800" src="" alt="Album Art">
-                <button class="preview-btn absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100 z-10" title="Preview">
-                    <i data-lucide="play" class="play-icon text-white w-5 h-5 fill-white"></i>
-                    <i data-lucide="pause" class="pause-icon text-white w-5 h-5 fill-white hidden"></i>
+        <div class="track-card">
+            <div class="track-art-wrapper">
+                <img class="track-img" src="" alt="Album Art">
+                <button class="preview-btn" title="Preview" style="display: none;">
+                    <svg class="play-icon" viewBox="0 0 24 24" width="20" height="20" fill="white">
+                        <polygon points="5,3 19,12 5,21"></polygon>
+                    </svg>
+                    <svg class="pause-icon" viewBox="0 0 24 24" width="20" height="20" fill="white" style="display:none;">
+                        <rect x="5" y="3" width="4" height="18"></rect>
+                        <rect x="15" y="3" width="4" height="18"></rect>
+                    </svg>
                 </button>
-                <div class="preview-progress absolute bottom-0 left-0 w-full h-[3px] bg-white/20 z-20">
-                    <div class="preview-progress-bar h-full w-0 bg-green-500 rounded-r-[2px] transition-all duration-75"></div>
+                <div class="preview-progress">
+                    <div class="preview-progress-bar"></div>
                 </div>
             </div>
-            <div class="track-info flex-1 overflow-hidden">
-                <div class="track-title font-medium text-[0.95rem] text-foreground truncate"></div>
-                <div class="track-artist text-[0.8rem] text-muted-foreground mt-0.5 truncate"></div>
-                <div class="track-reason text-[0.75rem] text-green-500 mt-1 italic"></div>
+            <div class="track-info">
+                <div class="track-title"></div>
+                <div class="track-artist"></div>
+                <div class="track-reason"></div>
             </div>
-            <a href="" class="spotify-link p-2 opacity-80 transition-opacity hover:opacity-100" target="_blank" title="Open in Spotify">
+            <a href="" class="spotify-link" target="_blank" title="Open in Spotify">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="#1DB954">
                     <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.299 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.781-.18-.6.18-1.2.78-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                 </svg>
@@ -225,10 +150,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     
-    <script>
-      // Initialize Lucide icons
-      lucide.createIcons();
-    </script>
     <script src="{{ url_for('static', filename='js/background.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
