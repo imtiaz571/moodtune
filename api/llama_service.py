@@ -40,7 +40,7 @@ class MoodResponse(BaseModel):
     recommendations: list[TrackRecommendation] | None = Field(
         default=None,
         description=(
-            "Provide 6-8 track recommendations ONLY when the user asks for a playlist or songs. "
+            "Provide exactly 20 track recommendations ONLY when the user asks for a playlist or songs. "
             "Leave this null when just chatting."
         )
     )
@@ -85,7 +85,7 @@ class LlamaService:
             "don't suggest party bangers when someone is heartbroken.\n"
             "4. Only populate the 'recommendations' array when you have enough context "
             "and they explicitly want recommendations. If just chatting, leave it null.\n"
-            "5. When providing recommendations, include EXACTLY 5 songs with short, engaging reasons "
+            "5. When providing recommendations, include EXACTLY 20 songs with short, engaging reasons "
             "that connect back to the mood.\n\n"
             "NEVER give generic, one-size-fits-all responses. Every reply should FEEL different "
             "based on the user's emotional state."
@@ -168,7 +168,7 @@ class LlamaService:
                 messages=messages,
                 temperature=0.85,
                 top_p=0.95,
-                max_tokens=1024,
+                max_tokens=4096,
                 stream=False
             )
             content = completion.choices[0].message.content
