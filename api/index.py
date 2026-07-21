@@ -22,6 +22,8 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")
+if app.secret_key == "dev_secret_key":
+    print("WARNING: Using default FLASK_SECRET_KEY. This is a security risk in production.")
 app.permanent_session_lifetime = timedelta(days=30)
 
 # Allow requests from Vite dev server and production origins
@@ -145,19 +147,39 @@ def chat():
         return jsonify({"error": "Empty message"}), 400
         
     try:
-        # Fetch user preferences
+        session_id = data.get("session_id", "default")
         user_prefs = None
+        chat_history = []
+        
         if db:
             uid = request.user.get('uid')
             try:
+                # Fetch user preferences
                 doc = db.collection('users').document(uid).get()
                 if doc.exists:
                     user_prefs = doc.to_dict()
+                    
+                # Fetch chat history for this session to maintain context
+                docs = db.collection('users').document(uid).collection('chats').where('session_id', '==', session_id).stream()
+                
+                # Sort in memory to avoid needing a composite index in Firestore
+                history_list = []
+                for doc in docs:
+                    h_data = doc.to_dict()
+                    history_list.append(h_data)
+                    
+                history_list.sort(key=lambda x: x.get('timestamp') or 0)
+                
+                for h_data in history_list:
+                    if h_data.get('user_message'):
+                        chat_history.append({'role': 'user', 'text': h_data['user_message']})
+                    if h_data.get('reply'):
+                        chat_history.append({'role': 'model', 'text': h_data['reply']})
             except Exception as e:
-                print(f"Failed to fetch user profile: {e}")
+                print(f"Failed to fetch user profile or history: {e}")
 
         # Get structured output from Gemini
-        mood_response = gemini_service.get_mood_recommendation(user_message, user_prefs)
+        mood_response = gemini_service.get_mood_recommendation(user_message, user_prefs, chat_history)
         
         if not mood_response:
             return jsonify({"error": "Failed to get response from Gemini"}), 500

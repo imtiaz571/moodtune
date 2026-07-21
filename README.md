@@ -1,11 +1,59 @@
+# MoodTunes
 
-  # Convert UI Kit to HTML
+A chatbot web app that integrates Gemini (for natural conversation and music recommendations) and Spotify (for searching tracks and creating playlists).
 
-  This is a code bundle for Convert UI Kit to HTML. The original project is available at https://www.figma.com/design/e9nUa8EQBAsAxKRzB7ljG4/Convert-UI-Kit-to-HTML.
+## Features
+- **Conversational UI**: A sleek, dark-themed chat interface.
+- **AI Recommendations**: Powered by Google's Gemini 2.5 Flash, it understands your mood and suggests tracks.
+- **Spotify Integration**: Logs in using OAuth 2.0 to search for tracks and build a playlist directly on your Spotify account.
 
-  ## Running the code
+## Setup Instructions
 
-  Run `npm i` to install the dependencies.
+### 1. Prerequisites
+- Node.js & npm installed
+- Python 3.10+ installed
+- A [Google AI Studio](https://aistudio.google.com/) account for a Gemini API key.
+- A [Spotify Developer](https://developer.spotify.com/dashboard) account.
 
-  Run `npm run dev` to start the development server.
-  
+### 2. Spotify App Configuration
+1. Go to your Spotify Developer Dashboard and create an app.
+2. Under the app's settings, add the following as a **Redirect URI**:
+   `http://127.0.0.1:5000/callback`
+   *(Ensure it is exactly this, not localhost).*
+3. Note down your `Client ID` and `Client Secret`.
+
+### 3. Environment Variables
+Copy `.env.example` to `.env` and fill in your credentials:
+```bash
+cp .env.example .env
+```
+Update `.env` with:
+- `GEMINI_API_KEY`
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+
+### 4. Install Dependencies
+
+**Frontend (React/Vite)**
+```bash
+npm install
+```
+
+**Backend (Python)**
+```bash
+python -m venv venv
+source venv/Scripts/activate  # On Windows PowerShell
+pip install -r requirements.txt
+```
+
+### 5. Run the App
+
+**Frontend**
+```bash
+npm run dev
+```
+
+**Backend**
+```bash
+python api/index.py
+```

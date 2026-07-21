@@ -57,20 +57,18 @@ class GeminiService:
         # Initialize Nvidia fallback client
         self.nvidia_client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
-            api_key="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"
+            api_key=os.getenv("NVIDIA_API_KEY")
         )
-        
-        # We will keep a simple list-based history for the chat API
-        self.history = []
 
-    def fallback_nvidia(self, user_input: str, system_instruction: str) -> MoodResponse:
+    def fallback_nvidia(self, user_input: str, system_instruction: str, history: list[dict] = None) -> MoodResponse:
         messages = [
             {
                 "role": "system", 
                 "content": system_instruction + "\n\nYou MUST respond with valid JSON matching this exact structure: {\"detected_mood\": \"string\", \"reply\": \"string\", \"recommendations\": [{\"title\": \"string\", \"artist\": \"string\", \"reason\": \"string\"}]}. If no recommendations, use null for the recommendations array. Do not include markdown code blocks like ```json."
             }
         ]
-        for msg in self.history:
+        
+        for msg in (history or []):
             role = "assistant" if msg['role'] == "model" else msg['role']
             messages.append({"role": role, "content": msg['text']})
             
@@ -107,7 +105,7 @@ class GeminiService:
                 recommendations=None
             )
 
-    def get_mood_recommendation(self, user_input: str, user_prefs: dict = None) -> MoodResponse | None:
+    def get_mood_recommendation(self, user_input: str, user_prefs: dict = None, history: list[dict] = None) -> MoodResponse | None:
         if not self.client:
             raise Exception("Gemini API key is missing.")
 
@@ -178,7 +176,7 @@ class GeminiService:
 
         # Build contents with history
         contents = []
-        for msg in self.history:
+        for msg in (history or []):
             contents.append(types.Content(role=msg['role'], parts=[types.Part.from_text(text=msg['text'])]))
         
         contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_input)]))
@@ -195,22 +193,13 @@ class GeminiService:
                 ),
             )
             
-            # Save to history
-            self.history.append({"role": "user", "text": user_input})
-            if response.parsed:
-                self.history.append({"role": "model", "text": response.parsed.reply})
-            elif response.text:
-                 self.history.append({"role": "model", "text": response.text})
-                 
             return response.parsed
         except Exception as e:
             print(f"Gemini API error: {e}")
             if "429" in str(e) or "quota" in str(e).lower() or "RESOURCE_EXHAUSTED" in str(e):
-                parsed = self.fallback_nvidia(user_input, system_instruction)
-                self.history.append({"role": "user", "text": user_input})
-                self.history.append({"role": "model", "text": parsed.reply})
+                parsed = self.fallback_nvidia(user_input, system_instruction, history)
                 return parsed
             raise
 
     def clear_history(self):
-        self.history = []
+        pass
