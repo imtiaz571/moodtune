@@ -191,6 +191,18 @@ export default function App() {
     }
   };
 
+  // ─── Load history ─────────────────────────────────────────────────────────
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const docs = await fetchHistory();
+      setHistoryDocs(docs);
+      setConversations(groupHistoryBySession(docs));
+    } catch (e) {
+      console.error("History load failed:", e);
+    }
+  }, []);
+
   // ─── Init Auth ─────────────────────────────────────────────────
 
   useEffect(() => {
@@ -271,18 +283,6 @@ export default function App() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
-
-  // ─── Load history ─────────────────────────────────────────────────────────
-
-  const loadHistory = useCallback(async () => {
-    try {
-      const docs = await fetchHistory();
-      setHistoryDocs(docs);
-      setConversations(groupHistoryBySession(docs));
-    } catch (e) {
-      console.error("History load failed:", e);
-    }
-  }, []);
 
   // ─── Sign in / out ────────────────────────────────────────────────────────
 
