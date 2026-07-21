@@ -113,6 +113,7 @@ export default function App() {
   const [currentMood, setCurrentMood] = useState("chill");
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [isSending, setIsSending] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -176,6 +177,44 @@ export default function App() {
       }
     });
   }, []);
+
+  // ─── Voice Input ────────────────────────────────────────────────────────
+
+  const startListening = useCallback(() => {
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      addToast("Speech recognition is not supported in this browser.", "error");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput((prev) => (prev ? prev + " " + transcript : transcript));
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+      if (event.error !== 'no-speech') {
+        addToast("Microphone error: " + event.error, "error");
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  }, [addToast]);
 
   // ─── Scroll to bottom ─────────────────────────────────────────────────────
 
@@ -681,7 +720,11 @@ export default function App() {
                 style={{ maxHeight: 160, minHeight: 24 }}
               />
               <div className="flex items-center gap-2 flex-shrink-0 pb-0.5">
-                <button className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                <button 
+                  onClick={startListening}
+                  title="Voice Input"
+                  className={`p-2 rounded-xl transition-colors ${isListening ? 'text-red-400 bg-red-400/10 animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
+                >
                   <Mic size={16} />
                 </button>
                 <button
