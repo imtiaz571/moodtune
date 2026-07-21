@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 # Fix path for Vercel serverless deployment
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from gemini_service import GeminiService
+from llama_service import LlamaService
 from spotify_service import SpotifyService
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
@@ -33,7 +33,7 @@ CORS(app, supports_credentials=True, origins=[
     "https://moodtune-nine.vercel.app",
 ])
 
-gemini_service = GeminiService()
+llama_service = LlamaService()
 spotify_service = SpotifyService()
 
 # Initialize Firebase Admin
@@ -141,8 +141,8 @@ def auth_status():
 @app.route("/api/chat/clear", methods=["POST"])
 @verify_session
 def clear_chat_history():
-    """Clears the in-memory Gemini conversation history to start a fresh chat."""
-    gemini_service.clear_history()
+    """Clears the in-memory AI conversation history to start a fresh chat."""
+    llama_service.clear_history()
     return jsonify({"success": True})
 
 @app.route("/api/chat", methods=["POST"])
@@ -186,11 +186,11 @@ def chat():
             except Exception as e:
                 print(f"Failed to fetch user profile or history: {e}")
 
-        # Get structured output from Gemini
-        mood_response = gemini_service.get_mood_recommendation(user_message, user_prefs, chat_history)
+        # Get structured output from Llama
+        mood_response = llama_service.get_mood_recommendation(user_message, user_prefs, chat_history)
         
         if not mood_response:
-            return jsonify({"error": "Failed to get response from Gemini"}), 500
+            return jsonify({"error": "Failed to get response from AI"}), 500
             
         # Get Spotify client if logged in
         token_info = session.get("token_info")
@@ -433,8 +433,8 @@ def create_playlist():
     sp_client = spotify_service.get_client(token_info)
     
     try:
-        # Generate a cool name using Gemini based on recent history
-        # (For simplicity here, we can just ask Gemini for a quick name)
+        # Generate a cool name using AI based on recent history
+        # (For simplicity here, we can just ask the AI for a quick name)
         # But to avoid another long request, let's use a static or basic dynamic name
         # A better way would be using a quick LLM call, let's do it:
         name = "MoodTunes Mix"

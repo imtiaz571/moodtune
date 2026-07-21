@@ -272,7 +272,7 @@ export default function App() {
     setCurrentMood("chill");
     setMobileSidebarOpen(false);
 
-    // Clear Gemini history on server
+    // Clear AI history on server
     if (currentUser) {
       fetch("/api/chat/clear", { method: "POST" }).catch(() => {});
     }
@@ -698,7 +698,7 @@ export default function App() {
               </div>
             </div>
             <p className="text-center text-[10px] text-muted-foreground mt-2">
-              MoodTunes uses Gemini AI to match your emotions to music. Preview tracks before adding to Spotify.
+              MoodTunes uses Llama AI to match your emotions to music. Preview tracks before adding to Spotify.
             </p>
           </div>
         </div>

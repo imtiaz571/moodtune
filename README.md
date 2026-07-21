@@ -1,10 +1,10 @@
 # MoodTunes
 
-A chatbot web app that integrates Gemini (for natural conversation and music recommendations) and Spotify (for searching tracks and creating playlists).
+A chatbot web app that integrates Llama AI (for natural conversation and music recommendations) and Spotify (for searching tracks and creating playlists).
 
 ## Features
 - **Conversational UI**: A sleek, dark-themed chat interface.
-- **AI Recommendations**: Powered by Google's Gemini 2.5 Flash, it understands your mood and suggests tracks.
+- **AI Recommendations**: Powered by NVIDIA's Llama 3.1 8B Instruct, it understands your mood and suggests tracks.
 - **Spotify Integration**: Logs in using OAuth 2.0 to search for tracks and build a playlist directly on your Spotify account.
 
 ## Setup Instructions
@@ -12,7 +12,7 @@ A chatbot web app that integrates Gemini (for natural conversation and music rec
 ### 1. Prerequisites
 - Node.js & npm installed
 - Python 3.10+ installed
-- A [Google AI Studio](https://aistudio.google.com/) account for a Gemini API key.
+- A [NVIDIA Developer](https://build.nvidia.com/) account for an NVIDIA API key.
 - A [Spotify Developer](https://developer.spotify.com/dashboard) account.
 
 ### 2. Spotify App Configuration
@@ -28,7 +28,7 @@ Copy `.env.example` to `.env` and fill in your credentials:
 cp .env.example .env
 ```
 Update `.env` with:
-- `GEMINI_API_KEY`
+- `NVIDIA_API_KEY`
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
 

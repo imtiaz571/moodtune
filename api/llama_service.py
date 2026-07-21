@@ -45,10 +45,9 @@ class MoodResponse(BaseModel):
         )
     )
 
-class GeminiService:
+class LlamaService:
     def __init__(self):
-        # We keep the class name GeminiService so we don't break existing imports, 
-        # but we are now purely using the NVIDIA API (Llama).
+        # We use the NVIDIA API (Llama).
         self.nvidia_client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
             api_key=os.getenv("NVIDIA_API_KEY", "dummy_key")
