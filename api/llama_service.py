@@ -53,7 +53,7 @@ class LlamaService:
             api_key=os.getenv("NVIDIA_API_KEY", "dummy_key")
         )
 
-    def get_mood_recommendation(self, user_input: str, user_prefs: dict = None, history: list[dict] = None) -> MoodResponse | None:
+    def get_mood_recommendation(self, user_input: str, user_prefs: dict = None, history: list[dict] = None, recent_tracks: list[dict] = None) -> MoodResponse | None:
         # System prompt: mood-adaptive persona
         system_instruction = (
             "You are MoodTunes, an emotionally intelligent music companion.\n\n"
@@ -103,10 +103,20 @@ class LlamaService:
             favorite_artists = user_prefs.get('favorite_artists')
             if favorite_artists:
                 artist_names = [a.get('name') for a in favorite_artists if a.get('name')]
-                system_instruction += f"- Favorite Artists: {', '.join(artist_names)}\n\n"
-                system_instruction += "IMPORTANT: Since the user has explicitly provided favorite artists, heavily prioritize recommending tracks by these artists or very similar artists.\n\n"
-            else:
-                system_instruction += "\n"
+                system_instruction += f"- Favorite Artists: {', '.join(artist_names)}\n"
+                system_instruction += "IMPORTANT: Since the user has explicitly provided favorite artists, heavily prioritize recommending tracks by these artists or very similar artists.\n"
+            
+            obscurity = user_prefs.get('obscurity', 'any')
+            if obscurity and obscurity != 'any':
+                system_instruction += f"- Obscurity Level: {obscurity.title()}\n"
+                system_instruction += f"IMPORTANT: You MUST tailor the obscurity of the recommendations to '{obscurity}'. E.g. if 'underground', avoid top 40 mainstream pop.\n"
+                
+            era = user_prefs.get('era', 'any')
+            if era and era != 'any':
+                system_instruction += f"- Preferred Era: {era}\n"
+                system_instruction += f"IMPORTANT: Prioritize songs released in the {era}.\n"
+                
+            system_instruction += "\n"
                 
             system_instruction += (
                 f"DO NOT ASK the user for these preferences anymore. Just give them recommendations right away based on this information! "
@@ -127,7 +137,16 @@ class LlamaService:
                 "- The MOMENT you have all three pieces AND are about to give song recommendations, "
                 "you MUST set chat_title to a catchy name combining their language + mood + genre. "
                 "Examples: 'Bangla Moody Romantic Mix', 'English Chill Pop Vibes', 'Hindi Sad Lofi Mix'. "
-                "This is MANDATORY — never leave chat_title empty once you give recommendations."
+                "MANDATORY — never leave chat_title empty once you give recommendations."
+            )
+
+        if recent_tracks:
+            track_names = [f"{t['title']} by {t['artist']}" for t in recent_tracks]
+            system_instruction += (
+                f"\n\nCRITICAL INSTRUCTION FOR ANTI-ECHO CHAMBER:\n"
+                f"The user has recently listened to the following tracks:\n"
+                f"{', '.join(track_names)}\n"
+                f"DO NOT recommend any of these exact tracks. We want 100% fresh discovery!"
             )
 
         messages = [

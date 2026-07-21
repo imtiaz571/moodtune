@@ -35,12 +35,28 @@ import { ParticleCanvas } from "../components/music/ParticleCanvas";
 import { TypingDots } from "../components/chat/TypingDots";
 import { MessageBubble } from "../components/chat/MessageBubble";
 
-const MOOD_PRESETS = [
-  { mood: "happy",    prompt: "I'm feeling happy and upbeat today!",     emoji: "☀️" },
-  { mood: "chill",    prompt: "I want something calm and relaxed.",       emoji: "🌊" },
-  { mood: "energetic",prompt: "Pump me up with high-energy tracks!",     emoji: "⚡" },
-  { mood: "sad",      prompt: "I'm in a melancholic, reflective mood.",   emoji: "🌙" },
-];
+const getDynamicIcebreakers = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return [
+      { mood: "happy", prompt: "Need upbeat jazz for my morning coffee ☕", emoji: "☕" },
+      { mood: "energetic", prompt: "Give me something high-energy for my morning workout!", emoji: "⚡" },
+      { mood: "chill", prompt: "I want a relaxed acoustic morning vibe.", emoji: "🌅" },
+    ];
+  } else if (hour >= 12 && hour < 18) {
+    return [
+      { mood: "focus", prompt: "Need some deep focus music for work.", emoji: "💻" },
+      { mood: "happy", prompt: "I'm feeling great this afternoon!", emoji: "☀️" },
+      { mood: "chill", prompt: "Need a chill afternoon break.", emoji: "🍵" },
+    ];
+  } else {
+    return [
+      { mood: "chill", prompt: "Give me something ambient to fall asleep to 🌙", emoji: "🌙" },
+      { mood: "romantic", prompt: "Set a romantic evening mood.", emoji: "🍷" },
+      { mood: "melancholic", prompt: "Late night reflections...", emoji: "🌌" },
+    ];
+  }
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -387,7 +403,7 @@ export default function App() {
 
   // ─── Create playlist ──────────────────────────────────────────────────────
 
-  const handleCreatePlaylist = async (uris: string[]) => {
+  const handleCreatePlaylist = async (uris: string[]): Promise<string | undefined> => {
     if (!spotifyLoggedIn) {
       addToast("Connect Spotify first to create a playlist.", "error");
       window.location.href = "/login";
@@ -402,6 +418,7 @@ export default function App() {
       const result = await createPlaylist(uris);
       if (result.success && result.url) {
         addToast("Playlist created!", "success", result.url, "Open in Spotify");
+        return result.url;
       } else if (result.error === "not_logged_in") {
         addToast("Connect Spotify first.", "error");
         window.location.href = "/login";
@@ -691,10 +708,10 @@ export default function App() {
               )}
               {/* Mood presets */}
               <div className="flex flex-wrap justify-center gap-3 mb-10">
-                {MOOD_PRESETS.map((p) => {
+                {getDynamicIcebreakers().map((p) => {
                   const cfg = getMoodCfg(p.mood);
                   return (
-                    <button key={p.mood} onClick={() => sendMessage(p.prompt)}
+                    <button key={p.prompt} onClick={() => sendMessage(p.prompt)}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:scale-105 active:scale-95"
                       style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}33`, boxShadow: `0 0 20px ${cfg.color}11` }}>
                       <span>{p.emoji}</span> {cfg.label}
@@ -873,6 +890,37 @@ export default function App() {
                     ))}
                   </div>
                 )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Obscurity</label>
+                  <select 
+                    value={tempProfile.obscurity || "any"} 
+                    onChange={e => setTempProfile({...tempProfile, obscurity: e.target.value})} 
+                    className="w-full px-3 py-2.5 rounded-xl text-sm bg-black/40 border border-white/10 text-foreground outline-none focus:border-white/20 transition-colors"
+                  >
+                    <option value="any">Any (Default)</option>
+                    <option value="mainstream">Mainstream Hits</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="underground">Underground / Indie</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Era</label>
+                  <select 
+                    value={tempProfile.era || "any"} 
+                    onChange={e => setTempProfile({...tempProfile, era: e.target.value})} 
+                    className="w-full px-3 py-2.5 rounded-xl text-sm bg-black/40 border border-white/10 text-foreground outline-none focus:border-white/20 transition-colors"
+                  >
+                    <option value="any">Any (Default)</option>
+                    <option value="2020s">2020s</option>
+                    <option value="2010s">2010s</option>
+                    <option value="2000s">2000s</option>
+                    <option value="90s">90s</option>
+                    <option value="80s">80s</option>
+                    <option value="70s and older">70s and older</option>
+                  </select>
+                </div>
               </div>
             </div>
 

@@ -1,12 +1,13 @@
-import { Play, ListPlus, Music2 } from "lucide-react";
+import { Play, ListPlus, Music2, Share2, Check } from "lucide-react";
 import { Message, BotMessage } from "../../types";
 import { MoodBadge } from "./MoodBadge";
 import { TrackCard } from "../music/TrackCard";
+import { useState } from "react";
 
 export function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: { 
   msg: Message; 
   moodColor: string; 
-  onCreatePlaylist: (uris: string[]) => void;
+  onCreatePlaylist: (uris: string[]) => Promise<string | undefined>;
   onPlayAll: (uris: string[], isDesktopClick: boolean) => void;
 }) {
   if (msg.role === "user") {
@@ -23,6 +24,25 @@ export function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: {
   const bot = msg as BotMessage;
   const tracks = bot.tracks ?? [];
   const uris = tracks.map((t) => t.uri).filter(Boolean) as string[];
+  const [playlistUrl, setPlaylistUrl] = useState<string | undefined>();
+  const [isCreating, setIsCreating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleShare = async () => {
+    if (!playlistUrl) return;
+    const text = `MoodTunes just generated my playlist! 🎧\n${playlistUrl}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "My MoodTunes Playlist", text });
+      } catch (e) {
+        console.error("Error sharing", e);
+      }
+    } else {
+      navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="flex gap-3 max-w-[90%]">
@@ -73,16 +93,35 @@ export function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: {
                 Play all songs
               </a>
             )}
-            <button
-              onClick={() => onCreatePlaylist(uris)}
-              className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
-              style={{ background: "#1DB95418", color: "#1DB954", border: "1px solid #1DB95440" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#1DB95428")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#1DB95418")}
-            >
-              <ListPlus size={16} />
-              Create Playlist on Spotify
-            </button>
+            {!playlistUrl ? (
+              <button
+                onClick={async () => {
+                  setIsCreating(true);
+                  const url = await onCreatePlaylist(uris);
+                  if (url) setPlaylistUrl(url);
+                  setIsCreating(false);
+                }}
+                disabled={isCreating}
+                className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
+                style={{ background: "#1DB95418", color: "#1DB954", border: "1px solid #1DB95440" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#1DB95428")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#1DB95418")}
+              >
+                <ListPlus size={16} />
+                {isCreating ? "Creating..." : "Create Playlist on Spotify"}
+              </button>
+            ) : (
+              <button
+                onClick={handleShare}
+                className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+                style={{ background: "rgba(167,139,250,0.18)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.3)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(167,139,250,0.28)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(167,139,250,0.18)")}
+              >
+                {isCopied ? <Check size={16} /> : <Share2 size={16} />}
+                {isCopied ? "Copied Link!" : "Share Playlist"}
+              </button>
+            )}
           </div>
         )}
       </div>

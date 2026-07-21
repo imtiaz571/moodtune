@@ -201,15 +201,10 @@ def chat():
             except Exception as e:
                 print(f"Failed to fetch user profile or history: {e}")
 
-        # Get structured output from Llama
-        mood_response = llama_service.get_mood_recommendation(user_message, user_prefs, chat_history)
-        
-        if not mood_response:
-            return jsonify({"error": "Failed to get response from AI"}), 500
-            
         # Get Spotify client if logged in
         token_info = session.get("token_info")
         sp_client = None
+        recent_tracks = None
         
         if token_info:
             sp_oauth = spotify_service.get_oauth_manager()
@@ -224,6 +219,13 @@ def chat():
                     
             if token_info:
                 sp_client = spotify_service.get_client(token_info)
+                recent_tracks = spotify_service.get_recently_played(sp_client, limit=10)
+
+        # Get structured output from Llama
+        mood_response = llama_service.get_mood_recommendation(user_message, user_prefs, chat_history, recent_tracks)
+        
+        if not mood_response:
+            return jsonify({"error": "Failed to get response from AI"}), 500
         
         tracks = []
         if mood_response.recommendations:

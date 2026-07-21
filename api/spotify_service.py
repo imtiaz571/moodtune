@@ -11,7 +11,7 @@ class SpotifyService:
         self.client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
         self.redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI", "https://moodtune-nine.vercel.app/callback")
         
-        self.scopes = "playlist-modify-public playlist-modify-private user-modify-playback-state user-read-playback-state"
+        self.scopes = "playlist-modify-public playlist-modify-private user-modify-playback-state user-read-playback-state user-read-recently-played user-top-read"
         
     def get_oauth_manager(self):
         return SpotifyOAuth(
@@ -71,6 +71,24 @@ class SpotifyService:
             ]
         except Exception as e:
             print(f"Artist search error: {e}")
+            return []
+
+    def get_recently_played(self, client, limit=20):
+        """Fetches the user's recently played tracks."""
+        if not client:
+            return []
+        try:
+            results = client.current_user_recently_played(limit=limit)
+            tracks = results.get('items', [])
+            return [
+                {
+                    'title': item['track']['name'],
+                    'artist': item['track']['artists'][0]['name']
+                }
+                for item in tracks
+            ]
+        except Exception as e:
+            print(f"Recently played fetch error: {e}")
             return []
 
     def create_playlist(self, client, name, description, track_uris):

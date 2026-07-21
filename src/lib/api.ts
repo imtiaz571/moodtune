@@ -118,6 +118,8 @@ export interface UserProfile {
   genre?: string;
   language?: string;
   favorite_artists?: Artist[];
+  obscurity?: string;
+  era?: string;
 }
 
 export async function searchArtist(query: string): Promise<Artist[]> {
