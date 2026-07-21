@@ -175,10 +175,14 @@ def search_artist():
     artists = spotify_service.search_artist(sp_client, query)
     return jsonify({"artists": artists})
 
+# In-memory session history for non-logged-in guest users
+guest_histories = {}
+
 @app.route("/api/chat/clear", methods=["POST"])
 def clear_chat_history():
     """Clears the in-memory AI conversation history to start a fresh chat."""
     llama_service.clear_history()
+    guest_histories.clear()
     return jsonify({"success": True})
 
 @app.route("/api/chat", methods=["POST"])
@@ -220,6 +224,9 @@ def chat():
                         chat_history.append({'role': 'model', 'text': h_data['reply']})
             except Exception as e:
                 print(f"Failed to fetch user profile or history: {e}")
+        else:
+            # For guest (non-logged-in) users, retrieve history from in-memory guest_histories
+            chat_history = guest_histories.get(session_id, [])
 
         # Get Spotify client if logged in
         token_info = session.get("token_info")
@@ -287,7 +294,7 @@ def chat():
             "tracks": tracks
         }
         
-        # Save to Firestore if user is logged in
+        # Save to Firestore if user is logged in, else record in guest_histories
         if db and uid:
             try:
                 session_id = data.get("session_id", "default")
@@ -310,6 +317,13 @@ def chat():
                 threading.Thread(target=save_to_firestore, args=(uid, chat_doc)).start()
             except Exception as e:
                 print(f"Failed to prepare chat for Firestore: {e}")
+        else:
+            if session_id not in guest_histories:
+                guest_histories[session_id] = []
+            guest_histories[session_id].append({'role': 'user', 'text': user_message})
+            guest_histories[session_id].append({'role': 'model', 'text': response_data["reply"]})
+            if len(guest_histories[session_id]) > 30:
+                guest_histories[session_id] = guest_histories[session_id][-30:]
                 
         return jsonify(response_data)
         
@@ -318,12 +332,11 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/history", methods=["GET"])
-@verify_session
 def get_history():
-    if not db:
+    uid = session.get("user_id")
+    if not uid or not db:
         return jsonify({"history": []})
         
-    uid = request.user.get('uid')
     try:
         docs = db.collection('users').document(uid).collection('chats').order_by('timestamp').stream()
         history = []
@@ -338,12 +351,12 @@ def get_history():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/chat/<session_id>", methods=["DELETE"])
-@verify_session
 def delete_chat(session_id):
-    if not db:
-        return jsonify({"error": "Database not initialized"}), 500
+    guest_histories.pop(session_id, None)
+    uid = session.get("user_id")
+    if not uid or not db:
+        return jsonify({"success": True, "deleted": 0})
         
-    uid = request.user.get('uid')
     try:
         # Get all documents for this session
         docs = db.collection('users').document(uid).collection('chats').where('session_id', '==', session_id).stream()
@@ -362,10 +375,10 @@ def delete_chat(session_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/chat/<session_id>/rename", methods=["PUT"])
-@verify_session
 def rename_chat(session_id):
-    if not db:
-        return jsonify({"error": "Database not initialized"}), 500
+    uid = session.get("user_id")
+    if not uid or not db:
+        return jsonify({"success": True, "updated": 0})
         
     data = request.get_json(silent=True) or {}
     new_title = data.get('title')
