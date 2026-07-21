@@ -440,49 +440,51 @@ function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: {
   const uris = tracks.map((t) => t.uri).filter(Boolean) as string[];
 
   return (
-    <div className="flex flex-col gap-3 max-w-[90%]">
-      <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ background: moodColor + "22", border: `1px solid ${moodColor}44` }}>
-          <Music2 size={13} style={{ color: moodColor }} />
-        </div>
-        <MoodBadge mood={bot.mood} />
+    <div className="flex gap-3 max-w-[90%]">
+      <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+        style={{ background: moodColor + "22", border: `1px solid ${moodColor}44` }}>
+        <Music2 size={13} style={{ color: moodColor }} />
       </div>
-      <div className="px-4 py-3 rounded-2xl rounded-tl-sm text-sm leading-relaxed"
-        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "#e0e0f0" }}>
-        {bot.text}
-      </div>
-      {tracks.length > 0 && (
-        <div className="flex flex-col gap-2 mt-1">
-          {tracks.map((t) => <TrackCard key={t.id} track={t} moodColor={moodColor} />)}
-          <a
-            href={uris.length > 0 ? `https://open.spotify.com/track/${uris[0].split(":")[2]}` : "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => {
-              if (uris.length === 0) e.preventDefault();
-              onPlayAll(uris);
-            }}
-            className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 cursor-pointer block text-center"
-            style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40`, textDecoration: 'none' }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = `${moodColor}28`)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = `${moodColor}18`)}
-          >
-            <Play size={16} className="inline-block mr-1 -mt-0.5" />
-            Play all songs
-          </a>
-          <button
-            onClick={() => onCreatePlaylist(uris)}
-            className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
-            style={{ background: "#1DB95418", color: "#1DB954", border: "1px solid #1DB95440" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#1DB95428")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#1DB95418")}
-          >
-            <ListPlus size={16} />
-            Create Playlist on Spotify
-          </button>
+      <div className="flex flex-col gap-2 min-w-0">
+        <div className="flex items-center gap-2">
+          <MoodBadge mood={bot.mood} />
         </div>
-      )}
+        <div className="px-4 py-3 rounded-2xl rounded-tl-sm text-sm leading-relaxed"
+          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "#e0e0f0" }}>
+          {bot.text}
+        </div>
+        {tracks.length > 0 && (
+          <div className="flex flex-col gap-2 mt-1">
+            {tracks.map((t) => <TrackCard key={t.id} track={t} moodColor={moodColor} />)}
+            <a
+              href={uris.length > 0 ? `https://open.spotify.com/track/${uris[0].split(":")[2]}` : "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                if (uris.length === 0) e.preventDefault();
+                onPlayAll(uris);
+              }}
+              className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 cursor-pointer block text-center"
+              style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40`, textDecoration: 'none' }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = `${moodColor}28`)}
+              onMouseLeave={(e) => (e.currentTarget.style.background = `${moodColor}18`)}
+            >
+              <Play size={16} className="inline-block mr-1 -mt-0.5" />
+              Play all songs
+            </a>
+            <button
+              onClick={() => onCreatePlaylist(uris)}
+              className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+              style={{ background: "#1DB95418", color: "#1DB954", border: "1px solid #1DB95440" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#1DB95428")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#1DB95418")}
+            >
+              <ListPlus size={16} />
+              Create Playlist on Spotify
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -883,7 +885,7 @@ export default function App() {
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden relative" style={{ fontFamily: "'Inter', sans-serif", background: "#08080f" }}>
+    <div className="flex h-[100dvh] w-screen overflow-hidden relative" style={{ fontFamily: "'Inter', sans-serif", background: "#08080f" }}>
       {/* Animated canvas background */}
       <ParticleCanvas moodColor={moodCfg.color} />
 
@@ -945,18 +947,18 @@ export default function App() {
           <div className="flex items-center gap-2">
             {!currentUser ? (
               <button onClick={handleSpotifySignIn}
-                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:bg-accent active:scale-95"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:bg-accent active:scale-95"
                 style={{ background: "rgba(255,255,255,0.07)", color: "#f0f0f8", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <SpotifyIcon size={14} /> Log in with Spotify
+                <SpotifyIcon size={14} /> <span className="hidden sm:inline">Log in with Spotify</span><span className="sm:hidden">Log in</span>
               </button>
             ) : (
-              <div className="hidden sm:flex items-center gap-2 px-2 py-1.5 rounded-xl"
+              <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl"
                 style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 {currentUser.image && (
                   <img src={currentUser.image} alt={currentUser.name ?? "User"}
                     className="w-5 h-5 rounded-full object-cover" />
                 )}
-                <span className="text-xs text-foreground">{currentUser.name?.split(" ")[0]}</span>
+                <span className="text-xs text-foreground hidden sm:inline">{currentUser.name?.split(" ")[0]}</span>
                 <button onClick={() => { setTempProfile(userProfile || {}); setShowSettingsModal(true); }} className="p-0.5 ml-1 text-muted-foreground hover:text-foreground transition-colors" title="Settings">
                   <Settings size={13} />
                 </button>
@@ -965,8 +967,6 @@ export default function App() {
                 </button>
               </div>
             )}
-
-
           </div>
         </header>
 
