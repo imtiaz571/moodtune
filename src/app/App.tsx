@@ -16,9 +16,12 @@ import {
   BackendTrack,
   HistoryDoc,
   getUserProfile,
+  getUserProfile,
   updateUserProfile,
   UserProfile,
   playAllTracks,
+  searchArtist,
+  Artist,
 } from "../lib/api";
 
 
@@ -133,6 +136,11 @@ export default function App() {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
 
+  // Artist search state
+  const [artistQuery, setArtistQuery] = useState("");
+  const [artistResults, setArtistResults] = useState<Artist[]>([]);
+  const [isSearchingArtist, setIsSearchingArtist] = useState(false);
+
   // Toast state
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastCounterRef = useRef(0);
@@ -153,6 +161,19 @@ export default function App() {
   const removeToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const handleSearchArtist = async () => {
+    if (!artistQuery.trim()) return;
+    setIsSearchingArtist(true);
+    try {
+      const results = await searchArtist(artistQuery);
+      setArtistResults(results);
+    } catch (e) {
+      addToast("Failed to search artists", "error");
+    } finally {
+      setIsSearchingArtist(false);
+    }
+  };
 
   // ─── Init Auth ─────────────────────────────────────────────────
 
@@ -769,6 +790,89 @@ export default function App() {
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Music Taste / Genres</label>
                 <input type="text" placeholder="e.g. Pop, Lofi, Rock" value={tempProfile.genre || ""} onChange={e => setTempProfile({...tempProfile, genre: e.target.value})} className="w-full px-3 py-2.5 rounded-xl text-sm bg-black/40 border border-white/10 text-foreground outline-none focus:border-white/20 transition-colors" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Favorite Artists</label>
+                <div className="flex gap-2 mb-3">
+                  <input 
+                    type="text" 
+                    placeholder="Search for an artist..." 
+                    value={artistQuery} 
+                    onChange={e => setArtistQuery(e.target.value)} 
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSearchArtist();
+                      }
+                    }}
+                    className="flex-1 px-3 py-2.5 rounded-xl text-sm bg-black/40 border border-white/10 text-foreground outline-none focus:border-white/20 transition-colors" 
+                  />
+                  <button 
+                    onClick={handleSearchArtist}
+                    disabled={isSearchingArtist || !artistQuery.trim()}
+                    className="px-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
+                  >
+                    <Search size={16} />
+                  </button>
+                </div>
+                
+                {artistResults.length > 0 && (
+                  <div className="mb-4 p-3 rounded-xl bg-black/20 border border-white/5 space-y-2 max-h-40 overflow-y-auto">
+                    {artistResults.map(artist => (
+                      <div key={artist.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors">
+                        <div className="flex items-center gap-3">
+                          {artist.image_url ? (
+                            <img src={artist.image_url} alt={artist.name} className="w-8 h-8 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                              <Music2 size={12} className="text-white/50" />
+                            </div>
+                          )}
+                          <span className="text-sm font-medium">{artist.name}</span>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            const current = tempProfile.favorite_artists || [];
+                            if (!current.find(a => a.id === artist.id)) {
+                              setTempProfile({ ...tempProfile, favorite_artists: [...current, artist] });
+                            }
+                            setArtistResults([]);
+                            setArtistQuery("");
+                          }}
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {(tempProfile.favorite_artists || []).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {tempProfile.favorite_artists?.map(artist => (
+                      <div key={artist.id} className="flex items-center gap-2 bg-white/10 rounded-full py-1 pl-1 pr-3 border border-white/5">
+                        {artist.image_url ? (
+                          <img src={artist.image_url} alt={artist.name} className="w-6 h-6 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center">
+                            <Music2 size={10} className="text-white/50" />
+                          </div>
+                        )}
+                        <span className="text-xs font-medium">{artist.name}</span>
+                        <button 
+                          onClick={() => setTempProfile({
+                            ...tempProfile, 
+                            favorite_artists: tempProfile.favorite_artists?.filter(a => a.id !== artist.id)
+                          })}
+                          className="text-white/50 hover:text-white transition-colors"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

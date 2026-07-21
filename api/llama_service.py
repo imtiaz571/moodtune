@@ -97,8 +97,19 @@ class LlamaService:
                 f"You ALREADY know the user's preferences:\n"
                 f"- Age: {user_prefs.get('age')}\n"
                 f"- Preferred Language: {user_prefs.get('language')}\n"
-                f"- Music Taste: {user_prefs.get('genre')}\n\n"
-                f"DO NOT ASK FOR THIS INFORMATION. Since you already know this, if the user expresses a mood or asks for music, "
+                f"- Music Taste: {user_prefs.get('genre')}\n"
+            )
+            
+            favorite_artists = user_prefs.get('favorite_artists')
+            if favorite_artists:
+                artist_names = [a.get('name') for a in favorite_artists if a.get('name')]
+                system_instruction += f"- Favorite Artists: {', '.join(artist_names)}\n\n"
+                system_instruction += "IMPORTANT: Since the user has explicitly provided favorite artists, heavily prioritize recommending tracks by these artists or very similar artists.\n\n"
+            else:
+                system_instruction += "\n"
+                
+            system_instruction += (
+                f"DO NOT ASK the user for these preferences anymore. Just give them recommendations right away based on this information! "
                 f"IMMEDIATELY provide a playlist tailored to their mood, age, language, and music taste. "
                 f"Always set the chat_title when giving recommendations."
             )

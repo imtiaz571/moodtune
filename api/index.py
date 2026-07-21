@@ -138,6 +138,21 @@ def auth_status():
         })
     return jsonify({"logged_in": False, "user": None})
 
+@app.route("/api/search_artist")
+@verify_session
+def search_artist():
+    query = request.args.get("q", "")
+    if not query:
+        return jsonify({"artists": []})
+        
+    token_info = session.get("token_info")
+    if not token_info:
+        return jsonify({"error": "not_logged_in"}), 401
+        
+    sp_client = spotify_service.get_client(token_info)
+    artists = spotify_service.search_artist(sp_client, query)
+    return jsonify({"artists": artists})
+
 @app.route("/api/chat/clear", methods=["POST"])
 @verify_session
 def clear_chat_history():

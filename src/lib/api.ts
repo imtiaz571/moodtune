@@ -107,10 +107,24 @@ export async function getAuthStatus(): Promise<{ logged_in: boolean, user?: { id
 
 // ─── User Profile ─────────────────────────────────────────────────────────────
 
+export interface Artist {
+  id: string;
+  name: string;
+  image_url: string | null;
+}
+
 export interface UserProfile {
   age?: string;
   genre?: string;
   language?: string;
+  favorite_artists?: Artist[];
+}
+
+export async function searchArtist(query: string): Promise<Artist[]> {
+  const res = await fetch(`/api/search_artist?q=${encodeURIComponent(query)}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.artists || [];
 }
 
 export async function getUserProfile(): Promise<UserProfile | null> {

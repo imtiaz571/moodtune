@@ -53,6 +53,26 @@ class SpotifyService:
             print(f"Spotify search error: {e}")
         return None
 
+    def search_artist(self, client, query):
+        """Searches for artists and returns a list of matching profiles."""
+        if not client:
+            return []
+        try:
+            results = client.search(q=query, type='artist', limit=5)
+            artists = results.get('artists', {}).get('items', [])
+            
+            return [
+                {
+                    'id': a['id'],
+                    'name': a['name'],
+                    'image_url': a['images'][0]['url'] if a['images'] else None
+                }
+                for a in artists
+            ]
+        except Exception as e:
+            print(f"Artist search error: {e}")
+            return []
+
     def create_playlist(self, client, name, description, track_uris):
         """Creates a playlist for the current user and adds tracks to it."""
         if not client:
