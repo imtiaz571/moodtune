@@ -259,6 +259,9 @@ def chat():
         if not mood_response:
             return jsonify({"error": "Failed to get response from AI"}), 500
         
+        # Get search client (user client or app credentials client) to fetch track URIs & metadata for ALL users
+        search_client = sp_client or spotify_service.get_app_client()
+
         tracks = []
         if mood_response.recommendations:
             def fetch_track(rec):
@@ -272,15 +275,15 @@ def chat():
                     "preview_url": None
                 }
                 
-                # If logged in, search Spotify for the track
-                if sp_client:
-                    sp_match = spotify_service.search_track(sp_client, rec.title, rec.artist)
+                # Search Spotify for track details (URI, artwork, preview URL, Spotify link)
+                if search_client:
+                    sp_match = spotify_service.search_track(search_client, rec.title, rec.artist)
                     if sp_match:
                         track_data.update(sp_match)
                 return track_data
 
             # Use ThreadPoolExecutor for concurrent Spotify searches
-            if sp_client:
+            if search_client:
                 with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
                     tracks = list(executor.map(fetch_track, mood_response.recommendations))
             else:

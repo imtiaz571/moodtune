@@ -1,6 +1,6 @@
 import os
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -40,9 +40,25 @@ class SpotifyService:
         if not token_info or 'access_token' not in token_info:
             return None
         return spotipy.Spotify(auth=token_info['access_token'])
+
+    def get_app_client(self):
+        """Returns an unauthenticated Spotipy client using App Client Credentials for searching tracks."""
+        if not self.client_id or not self.client_secret:
+            return None
+        try:
+            client_credentials_manager = SpotifyClientCredentials(
+                client_id=self.client_id,
+                client_secret=self.client_secret
+            )
+            return spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+        except Exception as e:
+            print(f"Error initializing app client credentials: {e}")
+            return None
         
     def search_track(self, client, title, artist):
         """Searches for a track and returns details if found."""
+        if not client:
+            client = self.get_app_client()
         if not client:
             return None
             
