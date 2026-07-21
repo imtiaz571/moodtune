@@ -142,7 +142,7 @@ class GeminiService:
             "don't suggest party bangers when someone is heartbroken.\n"
             "4. Only populate the 'recommendations' array when you have enough context "
             "and they explicitly want recommendations. If just chatting, leave it null.\n"
-            "5. When providing recommendations, include EXACTLY 20 songs with short, engaging reasons "
+            "5. When providing recommendations, include EXACTLY 5 songs with short, engaging reasons "
             "that connect back to the mood.\n\n"
             "NEVER give generic, one-size-fits-all responses. Every reply should FEEL different "
             "based on the user's emotional state."
