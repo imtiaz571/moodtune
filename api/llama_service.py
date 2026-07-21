@@ -53,7 +53,7 @@ class LlamaService:
             api_key=os.getenv("NVIDIA_API_KEY", "dummy_key")
         )
 
-    def get_mood_recommendation(self, user_input: str, user_prefs: dict = None, history: list[dict] = None, recent_tracks: list[dict] = None) -> MoodResponse | None:
+    def get_mood_recommendation(self, user_input: str, user_prefs: dict = None, history: list[dict] = None, recent_tracks: list[dict] = None, top_artists: list[str] = None, liked_songs: list[dict] = None) -> MoodResponse | None:
         # System prompt: mood-adaptive persona
         system_instruction = (
             "You are MoodTunes, an emotionally intelligent music companion.\n\n"
@@ -147,6 +147,22 @@ class LlamaService:
                 f"The user has recently listened to the following tracks:\n"
                 f"{', '.join(track_names)}\n"
                 f"DO NOT recommend any of these exact tracks. We want 100% fresh discovery!"
+            )
+
+        if top_artists:
+            system_instruction += (
+                f"\n\nSPOTIFY TOP ARTISTS CONTEXT:\n"
+                f"The user is currently obsessed with these artists on Spotify: {', '.join(top_artists)}.\n"
+                f"Strongly consider including these artists or highly similar artists in your recommendations."
+            )
+
+        if liked_songs:
+            liked_names = [f"{t['title']} by {t['artist']}" for t in liked_songs]
+            system_instruction += (
+                f"\n\nSPOTIFY LIKED SONGS CONTEXT:\n"
+                f"Here is a sample of the user's recently Liked Songs on Spotify:\n"
+                f"{', '.join(liked_names)}\n"
+                f"Use this to deeply understand their specific taste. IF the user explicitly asks you to build a playlist 'from their liked songs' or 'using only liked songs', you MUST select tracks exclusively from this list."
             )
 
         messages = [

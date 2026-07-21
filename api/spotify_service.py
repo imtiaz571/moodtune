@@ -11,7 +11,7 @@ class SpotifyService:
         self.client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
         self.redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI", "https://moodtune-nine.vercel.app/callback")
         
-        self.scopes = "playlist-modify-public playlist-modify-private user-modify-playback-state user-read-playback-state user-read-recently-played user-top-read"
+        self.scopes = "playlist-modify-public playlist-modify-private user-modify-playback-state user-read-playback-state user-read-recently-played user-top-read user-library-read"
         
     def get_oauth_manager(self):
         return SpotifyOAuth(
@@ -89,6 +89,36 @@ class SpotifyService:
             ]
         except Exception as e:
             print(f"Recently played fetch error: {e}")
+            return []
+
+    def get_top_artists(self, client, limit=5, time_range='short_term'):
+        """Fetches the user's top artists (e.g., 'on repeat')."""
+        if not client:
+            return []
+        try:
+            results = client.current_user_top_artists(limit=limit, time_range=time_range)
+            artists = results.get('items', [])
+            return [artist['name'] for artist in artists]
+        except Exception as e:
+            print(f"Top artists fetch error: {e}")
+            return []
+
+    def get_liked_songs_sample(self, client, limit=50):
+        """Fetches a sample of the user's recently liked songs."""
+        if not client:
+            return []
+        try:
+            results = client.current_user_saved_tracks(limit=limit)
+            tracks = results.get('items', [])
+            return [
+                {
+                    'title': item['track']['name'],
+                    'artist': item['track']['artists'][0]['name']
+                }
+                for item in tracks if item.get('track')
+            ]
+        except Exception as e:
+            print(f"Liked songs fetch error: {e}")
             return []
 
     def create_playlist(self, client, name, description, track_uris):

@@ -205,6 +205,8 @@ def chat():
         token_info = session.get("token_info")
         sp_client = None
         recent_tracks = None
+        top_artists = None
+        liked_songs = None
         
         if token_info:
             sp_oauth = spotify_service.get_oauth_manager()
@@ -219,10 +221,13 @@ def chat():
                     
             if token_info:
                 sp_client = spotify_service.get_client(token_info)
+                # Fetch Spotify context data concurrently if needed, but sequentially is fine for now
                 recent_tracks = spotify_service.get_recently_played(sp_client, limit=10)
+                top_artists = spotify_service.get_top_artists(sp_client, limit=5)
+                liked_songs = spotify_service.get_liked_songs_sample(sp_client, limit=30)
 
         # Get structured output from Llama
-        mood_response = llama_service.get_mood_recommendation(user_message, user_prefs, chat_history, recent_tracks)
+        mood_response = llama_service.get_mood_recommendation(user_message, user_prefs, chat_history, recent_tracks, top_artists, liked_songs)
         
         if not mood_response:
             return jsonify({"error": "Failed to get response from AI"}), 500
