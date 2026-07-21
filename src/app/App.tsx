@@ -299,11 +299,6 @@ export default function App() {
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isSending) return;
 
-    if (!currentUser) {
-      addToast("Please log in with Spotify to chat.", "error");
-      return;
-    }
-
     if (!chatStarted) setChatStarted(true);
     setMobileSidebarOpen(false);
     setIsSending(true);

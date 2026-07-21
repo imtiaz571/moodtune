@@ -176,14 +176,12 @@ def search_artist():
     return jsonify({"artists": artists})
 
 @app.route("/api/chat/clear", methods=["POST"])
-@verify_session
 def clear_chat_history():
     """Clears the in-memory AI conversation history to start a fresh chat."""
     llama_service.clear_history()
     return jsonify({"success": True})
 
 @app.route("/api/chat", methods=["POST"])
-@verify_session
 def chat():
     data = request.json
     user_message = data.get("message")
@@ -195,9 +193,9 @@ def chat():
         session_id = data.get("session_id", "default")
         user_prefs = None
         chat_history = []
+        uid = session.get("user_id")
         
-        if db:
-            uid = request.user.get('uid')
+        if db and uid:
             try:
                 # Fetch user preferences
                 doc = db.collection('users').document(uid).get()
@@ -289,10 +287,9 @@ def chat():
             "tracks": tracks
         }
         
-        # Save to Firestore
-        if db:
+        # Save to Firestore if user is logged in
+        if db and uid:
             try:
-                uid = request.user.get('uid')
                 session_id = data.get("session_id", "default")
                 chat_doc = {
                     "session_id": session_id,
