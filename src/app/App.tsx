@@ -759,8 +759,8 @@ export default function App() {
                 boxShadow: input ? `0 0 20px ${moodCfg.color}18` : "none",
               }}>
               <textarea ref={textareaRef} value={input} onChange={handleTextareaChange} onKeyDown={handleKeyDown}
-                placeholder={currentUser ? (chatStarted ? "How are you feeling now?" : "Describe your mood or ask for music...") : "Sign in to start chatting..."}
-                disabled={!currentUser || isSending}
+                placeholder={chatStarted ? "How are you feeling now?" : "Describe your mood or ask for music..."}
+                disabled={isSending}
                 rows={1}
                 className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder-muted-foreground resize-none leading-relaxed disabled:opacity-50"
                 style={{ maxHeight: 160, minHeight: 24 }}
@@ -775,12 +775,12 @@ export default function App() {
                 </button>
                 <button
                   onClick={() => sendMessage(input)}
-                  disabled={!input.trim() || !currentUser || isSending}
+                  disabled={!input.trim() || isSending}
                   className="w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-95 disabled:opacity-40"
                   style={{
-                    background: input.trim() && currentUser ? moodCfg.color : "rgba(255,255,255,0.1)",
-                    color: input.trim() && currentUser ? "#08080f" : "#6b6b8a",
-                    boxShadow: input.trim() && currentUser ? `0 0 16px ${moodCfg.color}55` : "none",
+                    background: input.trim() ? moodCfg.color : "rgba(255,255,255,0.1)",
+                    color: input.trim() ? "#08080f" : "#6b6b8a",
+                    boxShadow: input.trim() ? `0 0 16px ${moodCfg.color}55` : "none",
                   }}>
                   <Send size={14} />
                 </button>
