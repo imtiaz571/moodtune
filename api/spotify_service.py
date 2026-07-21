@@ -21,6 +21,11 @@ class SpotifyService:
             else:
                 redirect_uri = "https://moodtune-nine.vercel.app/callback"
 
+        # Force HTTPS for production/remote deployments behind proxies (e.g. Vercel)
+        if not ("localhost" in redirect_uri or "127.0.0.1" in redirect_uri):
+            if redirect_uri.startswith("http://"):
+                redirect_uri = "https://" + redirect_uri[7:]
+
         return SpotifyOAuth(
             client_id=self.client_id,
             client_secret=self.client_secret,

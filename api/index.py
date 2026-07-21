@@ -128,8 +128,11 @@ def callback():
         return redirect("/?login=success")
             
     except Exception as e:
-        print("Error getting token:", e)
-        return redirect("/?auth_error=token_failed")
+        import traceback
+        print(f"Error getting Spotify token: {e}")
+        traceback.print_exc()
+        safe_msg = str(e).replace(" ", "_").replace("'", "").replace('"', "")[:60]
+        return redirect(f"/?auth_error={safe_msg or 'token_failed'}")
 
 @app.route("/logout")
 def logout():
