@@ -456,22 +456,19 @@ function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: {
         {tracks.length > 0 && (
           <div className="flex flex-col gap-2 mt-1">
             {tracks.map((t) => <TrackCard key={t.id} track={t} moodColor={moodColor} />)}
-            <a
-              href={uris.length > 0 ? `https://open.spotify.com/track/${uris[0].split(":")[2]}` : "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
               onClick={(e) => {
-                if (uris.length === 0) e.preventDefault();
+                e.preventDefault();
                 onPlayAll(uris);
               }}
-              className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 cursor-pointer block text-center"
-              style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40`, textDecoration: 'none' }}
+              className="flex w-full items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+              style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40` }}
               onMouseEnter={(e) => (e.currentTarget.style.background = `${moodColor}28`)}
               onMouseLeave={(e) => (e.currentTarget.style.background = `${moodColor}18`)}
             >
-              <Play size={16} className="inline-block mr-1 -mt-0.5" />
+              <Play size={16} />
               Play all songs
-            </a>
+            </button>
             <button
               onClick={() => onCreatePlaylist(uris)}
               className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
@@ -745,7 +742,7 @@ export default function App() {
     }
   };
 
-  const handlePlayAll = (uris: string[]) => {
+  const handlePlayAll = async (uris: string[]) => {
     if (!spotifyLoggedIn) {
       addToast("Connect Spotify first.", "error");
       window.location.href = "/login";
@@ -756,27 +753,34 @@ export default function App() {
       return;
     }
 
-    addToast("Opening Spotify Web Player...", "info");
-    // The browser natively opens the new tab because the button is now an <a href="..." target="_blank"> tag!
-    // We just need to queue the rest of the songs in the background.
-    
-    // Wait for the app to become the active device, then queue the rest
-    let attempts = 0;
-    const tryQueue = async () => {
-      if (uris.length <= 1) return;
-      attempts++;
-      try {
-        await playAllTracks(uris.slice(1), true);
-        addToast("Remaining songs added to your queue!", "success");
-      } catch (queueErr: any) {
-        if (attempts < 10) {
-          setTimeout(tryQueue, 3000); // Retry after 3 seconds
-        } else {
-          addToast(queueErr.message || "Failed to queue remaining songs.", "error");
-        }
+    try {
+      addToast("Starting playback...", "info");
+      await playAllTracks(uris, false);
+      addToast("Playing on your active device!", "success");
+    } catch (err: any) {
+      if (err.name === "NO_ACTIVE_DEVICE" || err.message === "NO_ACTIVE_DEVICE") {
+        addToast("Opening Spotify to wake up device...", "info");
+        window.location.href = `spotify:track:${uris[0].split(":")[2]}`;
+        
+        let attempts = 0;
+        const retryPlayback = async () => {
+          attempts++;
+          try {
+            await playAllTracks(uris, false);
+            addToast("Playing on your active device!", "success");
+          } catch (retryErr: any) {
+            if (attempts < 6) {
+              setTimeout(retryPlayback, 2500);
+            } else {
+              addToast("Could not find active Spotify device. Try pressing play manually.", "error");
+            }
+          }
+        };
+        setTimeout(retryPlayback, 3000);
+      } else {
+        addToast(err.message || "Failed to start playback.", "error");
       }
-    };
-    setTimeout(tryQueue, 4000);
+    }
   };
 
   // ─── Keyboard handler ─────────────────────────────────────────────────────
