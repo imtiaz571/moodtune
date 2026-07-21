@@ -148,3 +148,40 @@ class SpotifyService:
         except Exception as e:
             print(f"Error creating playlist: {e}")
             raise e
+
+    def get_user_playlists(self, client, limit=50):
+        """Fetches the user's playlists (owned or collaborative)."""
+        if not client:
+            return []
+        try:
+            user_info = client.current_user()
+            user_id = user_info['id']
+            results = client.current_user_playlists(limit=limit)
+            playlists = results.get('items', [])
+            
+            valid_playlists = []
+            for p in playlists:
+                # User can only add tracks if they own it or it's collaborative
+                if p['owner']['id'] == user_id or p.get('collaborative'):
+                    image_url = p['images'][0]['url'] if p.get('images') and len(p['images']) > 0 else None
+                    valid_playlists.append({
+                        'id': p['id'],
+                        'name': p['name'],
+                        'image': image_url
+                    })
+            return valid_playlists
+        except Exception as e:
+            print(f"Error fetching user playlists: {e}")
+            return []
+
+    def add_track_to_playlist(self, client, playlist_id, track_uri):
+        """Adds a single track to the specified playlist."""
+        if not client:
+            return False
+        try:
+            client.playlist_add_items(playlist_id, [track_uri])
+            return True
+        except Exception as e:
+            print(f"Error adding track to playlist: {e}")
+            raise e
+

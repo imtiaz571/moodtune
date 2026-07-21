@@ -170,3 +170,34 @@ export async function playAllTracks(uris: string[], queueOnly = false): Promise<
   }
   return data;
 }
+
+// ─── Playlists ────────────────────────────────────────────────────────────────
+
+export interface Playlist {
+  id: string;
+  name: string;
+  image: string | null;
+}
+
+export async function getUserPlaylists(): Promise<Playlist[]> {
+  const res = await fetch("/api/playlists");
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.playlists || [];
+}
+
+export async function addTrackToPlaylist(playlistId: string, trackUri: string): Promise<{ success: boolean; error?: string }> {
+  const res = await fetch("/api/playlists/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playlist_id: playlistId, track_uri: trackUri }),
+  });
+  
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    return { success: false, error: `Server error (${res.status})` };
+  }
+  return data;
+}

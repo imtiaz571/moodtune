@@ -471,6 +471,64 @@ def create_playlist():
         print(f"Playlist creation error: {error_trace}")
         return jsonify({"error": error_trace, "success": False}), 500
 
+@app.route("/api/playlists", methods=["GET"])
+def get_playlists():
+    token_info = session.get("token_info")
+    if not token_info:
+        return jsonify({"error": "not_logged_in", "success": False}), 401
+        
+    if token_info:
+        sp_oauth = spotify_service.get_oauth_manager()
+        if sp_oauth.is_token_expired(token_info):
+            try:
+                token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+                session["token_info"] = token_info
+            except Exception as e:
+                print(f"Failed to refresh token: {e}")
+                session.pop("token_info", None)
+                return jsonify({"error": "not_logged_in", "success": False}), 401
+                
+    sp_client = spotify_service.get_client(token_info)
+    try:
+        playlists = spotify_service.get_user_playlists(sp_client)
+        return jsonify({"success": True, "playlists": playlists})
+    except Exception as e:
+        print(f"Playlists fetch error: {e}")
+        return jsonify({"error": str(e), "success": False}), 500
+
+@app.route("/api/playlists/add", methods=["POST"])
+def add_to_playlist():
+    token_info = session.get("token_info")
+    if not token_info:
+        return jsonify({"error": "not_logged_in", "success": False}), 401
+        
+    data = request.json
+    playlist_id = data.get("playlist_id")
+    track_uri = data.get("track_uri")
+    
+    if not playlist_id or not track_uri:
+        return jsonify({"error": "Missing playlist_id or track_uri", "success": False}), 400
+        
+    if token_info:
+        sp_oauth = spotify_service.get_oauth_manager()
+        if sp_oauth.is_token_expired(token_info):
+            try:
+                token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+                session["token_info"] = token_info
+            except Exception as e:
+                print(f"Failed to refresh token: {e}")
+                session.pop("token_info", None)
+                return jsonify({"error": "not_logged_in", "success": False}), 401
+                
+    sp_client = spotify_service.get_client(token_info)
+    
+    try:
+        success = spotify_service.add_track_to_playlist(sp_client, playlist_id, track_uri)
+        return jsonify({"success": success})
+    except Exception as e:
+        print(f"Add to playlist error: {e}")
+        return jsonify({"error": str(e), "success": False}), 500
+
 @app.route("/api/profile", methods=["GET", "PUT"])
 @verify_session
 def profile():

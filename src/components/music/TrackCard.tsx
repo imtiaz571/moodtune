@@ -1,12 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, ListPlus, Loader2, Check } from "lucide-react";
 import { Track } from "../../types";
 import { SpotifyIcon } from "../ui/Icons";
+import { getUserPlaylists, addTrackToPlaylist, Playlist } from "../../lib/api";
 
 export function TrackCard({ track, moodColor }: { track: Track; moodColor: string }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [showPlaylists, setShowPlaylists] = useState(false);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
+  const [addingTo, setAddingTo] = useState<string | null>(null);
+  const [addedTo, setAddedTo] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -46,6 +53,53 @@ export function TrackCard({ track, moodColor }: { track: Track; moodColor: strin
       audioRef.current.src = "";
     }
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowPlaylists(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleAddClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowPlaylists(!showPlaylists);
+    if (!showPlaylists && playlists.length === 0) {
+      setLoadingPlaylists(true);
+      try {
+        const data = await getUserPlaylists();
+        setPlaylists(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingPlaylists(false);
+      }
+    }
+  };
+
+  const handleAddToPlaylist = async (playlistId: string) => {
+    if (!track.uri) return;
+    setAddingTo(playlistId);
+    try {
+      const res = await addTrackToPlaylist(playlistId, track.uri);
+      if (res.success) {
+        setAddedTo(playlistId);
+        setTimeout(() => {
+          setAddedTo(null);
+          setShowPlaylists(false);
+        }, 2000);
+      } else {
+        alert(res.error || "Failed to add track");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAddingTo(null);
+    }
+  };
 
   return (
     <div
@@ -88,13 +142,60 @@ export function TrackCard({ track, moodColor }: { track: Track; moodColor: strin
             <p className="text-sm font-semibold text-foreground truncate">{track.title}</p>
             <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
           </div>
-          {track.spotifyUrl && (
-            <a href={track.spotifyUrl} target="_blank" rel="noreferrer"
-              className="flex-shrink-0 p-1.5 rounded-lg transition-colors hover:opacity-80"
-              style={{ color: "#1DB954" }} onClick={(e) => e.stopPropagation()}>
-              <SpotifyIcon size={15} />
-            </a>
-          )}
+          <div className="flex items-center gap-1 relative" ref={dropdownRef}>
+            {track.uri && (
+              <button
+                onClick={handleAddClick}
+                className="flex-shrink-0 p-1.5 rounded-lg transition-colors hover:bg-white/10 text-muted-foreground hover:text-white relative"
+                title="Add to Playlist"
+              >
+                <ListPlus size={16} />
+              </button>
+            )}
+            
+            {showPlaylists && (
+              <div className="absolute right-0 top-full mt-2 w-56 max-h-64 overflow-y-auto bg-card border border-white/10 rounded-xl shadow-2xl z-50 p-2 text-sm flex flex-col gap-1 custom-scrollbar">
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Add to Playlist
+                </div>
+                {loadingPlaylists ? (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 size={20} className="animate-spin text-muted-foreground" />
+                  </div>
+                ) : playlists.length > 0 ? (
+                  playlists.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={(e) => { e.stopPropagation(); handleAddToPlaylist(p.id); }}
+                      disabled={addingTo === p.id || addedTo === p.id}
+                      className="flex items-center gap-2 w-full text-left p-1.5 rounded-md hover:bg-white/10 transition-colors disabled:opacity-50"
+                    >
+                      {p.image ? (
+                        <img src={p.image} alt="" className="w-8 h-8 rounded bg-muted flex-shrink-0 object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded bg-muted flex-shrink-0" />
+                      )}
+                      <span className="truncate flex-1">{p.name}</span>
+                      {addingTo === p.id && <Loader2 size={14} className="animate-spin text-muted-foreground flex-shrink-0" />}
+                      {addedTo === p.id && <Check size={14} className="text-green-500 flex-shrink-0" />}
+                    </button>
+                  ))
+                ) : (
+                  <div className="p-3 text-center text-muted-foreground text-xs">
+                    No editable playlists found.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {track.spotifyUrl && (
+              <a href={track.spotifyUrl} target="_blank" rel="noreferrer"
+                className="flex-shrink-0 p-1.5 rounded-lg transition-colors hover:bg-white/10"
+                style={{ color: "#1DB954" }} onClick={(e) => e.stopPropagation()}>
+                <SpotifyIcon size={16} />
+              </a>
+            )}
+          </div>
         </div>
         <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: moodColor, opacity: 0.85 }}>{track.reason}</p>
         {playing && (
