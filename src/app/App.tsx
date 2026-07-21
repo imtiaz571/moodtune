@@ -422,7 +422,7 @@ function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: {
   msg: Message; 
   moodColor: string; 
   onCreatePlaylist: (uris: string[]) => void;
-  onPlayAll: (uris: string[]) => void;
+  onPlayAll: (uris: string[], isDesktopClick: boolean) => void;
 }) {
   if (msg.role === "user") {
     return (
@@ -456,19 +456,38 @@ function MessageBubble({ msg, moodColor, onCreatePlaylist, onPlayAll }: {
         {tracks.length > 0 && (
           <div className="flex flex-col gap-2 mt-1">
             {tracks.map((t) => <TrackCard key={t.id} track={t} moodColor={moodColor} />)}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onPlayAll(uris);
-              }}
-              className="flex w-full items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
-              style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40` }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = `${moodColor}28`)}
-              onMouseLeave={(e) => (e.currentTarget.style.background = `${moodColor}18`)}
-            >
-              <Play size={16} />
-              Play all songs
-            </button>
+            {typeof navigator !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onPlayAll(uris, false);
+                }}
+                className="flex w-full items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+                style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40` }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = `${moodColor}28`)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = `${moodColor}18`)}
+              >
+                <Play size={16} />
+                Play all songs
+              </button>
+            ) : (
+              <a
+                href={uris.length > 0 ? `https://open.spotify.com/track/${uris[0].split(":")[2]}` : "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (uris.length === 0) e.preventDefault();
+                  onPlayAll(uris, true);
+                }}
+                className="flex w-full items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 cursor-pointer block text-center"
+                style={{ background: `${moodColor}18`, color: moodColor, border: `1px solid ${moodColor}40`, textDecoration: 'none' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = `${moodColor}28`)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = `${moodColor}18`)}
+              >
+                <Play size={16} className="inline-block mr-1 -mt-0.5" />
+                Play all songs
+              </a>
+            )}
             <button
               onClick={() => onCreatePlaylist(uris)}
               className="flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
@@ -742,7 +761,7 @@ export default function App() {
     }
   };
 
-  const handlePlayAll = async (uris: string[]) => {
+  const handlePlayAll = async (uris: string[], isDesktopClick: boolean) => {
     if (!spotifyLoggedIn) {
       addToast("Connect Spotify first.", "error");
       window.location.href = "/login";
@@ -750,6 +769,27 @@ export default function App() {
     }
     if (uris.length === 0) {
       addToast("No Spotify tracks available to play.", "error");
+      return;
+    }
+
+    if (isDesktopClick) {
+      addToast("Opening Spotify Web Player...", "info");
+      let attempts = 0;
+      const tryQueue = async () => {
+        if (uris.length <= 1) return;
+        attempts++;
+        try {
+          await playAllTracks(uris.slice(1), true);
+          addToast("Remaining songs added to your queue!", "success");
+        } catch (queueErr: any) {
+          if (attempts < 10) {
+            setTimeout(tryQueue, 3000);
+          } else {
+            addToast("Failed to queue remaining songs.", "error");
+          }
+        }
+      };
+      setTimeout(tryQueue, 4000);
       return;
     }
 
