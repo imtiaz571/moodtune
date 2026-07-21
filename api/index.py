@@ -82,9 +82,17 @@ def firebase_config():
 
 @app.route("/login")
 def login():
-    sp_oauth = spotify_service.get_oauth_manager()
-    auth_url = sp_oauth.get_authorize_url()
-    return redirect(auth_url)
+    try:
+        sp_oauth = spotify_service.get_oauth_manager()
+        auth_url = sp_oauth.get_authorize_url()
+        return redirect(auth_url)
+    except Exception as e:
+        print(f"Login route error: {e}")
+        return jsonify({
+            "error": "Failed to initiate login.",
+            "details": str(e),
+            "message": "Did you forget to add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET to your environment variables?"
+        }), 500
 
 @app.route("/callback")
 def callback():
