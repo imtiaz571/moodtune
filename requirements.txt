@@ -7,3 +7,4 @@ requests
 openai
 firebase-admin
 json-repair
+playwright
