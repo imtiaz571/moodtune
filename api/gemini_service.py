@@ -57,7 +57,7 @@ class GeminiService:
         # Initialize Nvidia fallback client
         self.nvidia_client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
-            api_key=os.getenv("NVIDIA_API_KEY")
+            api_key=os.getenv("NVIDIA_API_KEY", "dummy_key")
         )
 
     def fallback_nvidia(self, user_input: str, system_instruction: str, history: list[dict] = None) -> MoodResponse:
