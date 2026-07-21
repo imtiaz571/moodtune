@@ -127,6 +127,12 @@ def callback():
 
         return redirect("/?login=success")
             
+    except spotipy.exceptions.SpotifyException as e:
+        print(f"SpotifyException in callback: {e}")
+        if e.http_status == 403:
+            return redirect("/?auth_error=User_email_not_registered_in_Spotify_Developer_Dashboard")
+        safe_msg = str(e).replace(" ", "_").replace("'", "").replace('"', "")[:60]
+        return redirect(f"/?auth_error={safe_msg or 'token_failed'}")
     except Exception as e:
         import traceback
         print(f"Error getting Spotify token: {e}")

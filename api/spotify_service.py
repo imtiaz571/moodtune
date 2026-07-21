@@ -11,7 +11,7 @@ class SpotifyService:
         self.client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
         self.redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI", "https://moodtune-nine.vercel.app/callback")
         
-        self.scopes = "playlist-modify-public playlist-modify-private playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state user-read-recently-played user-top-read user-library-read"
+        self.scopes = "playlist-modify-public playlist-modify-private playlist-read-private playlist-read-collaborative user-modify-playback-state user-read-playback-state user-read-recently-played user-top-read user-library-read user-read-email"
         
     def get_oauth_manager(self, request_host_url=None):
         redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI")
