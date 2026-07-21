@@ -26,6 +26,7 @@ export async function sendChat(
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ message, session_id: sessionId }),
   });
   if (!res.ok) {
@@ -48,7 +49,7 @@ export interface HistoryDoc {
 }
 
 export async function fetchHistory(): Promise<HistoryDoc[]> {
-  const res = await fetch("/api/history");
+  const res = await fetch("/api/history", { credentials: "include" });
   if (!res.ok) return [];
   const data = await res.json();
   return data.history ?? [];
@@ -59,6 +60,7 @@ export async function fetchHistory(): Promise<HistoryDoc[]> {
 export async function deleteChat(sessionId: string): Promise<void> {
   await fetch(`/api/chat/${encodeURIComponent(sessionId)}`, {
     method: "DELETE",
+    credentials: "include",
   });
 }
 
@@ -71,6 +73,7 @@ export async function renameChat(
   await fetch(`/api/chat/${encodeURIComponent(sessionId)}/rename`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ title: newTitle }),
   });
 }
@@ -88,6 +91,7 @@ export async function createPlaylist(uris: string[]): Promise<PlaylistResult> {
   const res = await fetch("/api/create_playlist", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ uris }),
   });
   try {
@@ -100,7 +104,7 @@ export async function createPlaylist(uris: string[]): Promise<PlaylistResult> {
 // ─── Spotify auth status ──────────────────────────────────────────────────────
 
 export async function getAuthStatus(): Promise<{ logged_in: boolean, user?: { id: string, name: string, image: string | null } }> {
-  const res = await fetch("/api/auth_status");
+  const res = await fetch("/api/auth_status", { credentials: "include" });
   if (!res.ok) return { logged_in: false };
   return res.json();
 }
@@ -123,14 +127,14 @@ export interface UserProfile {
 }
 
 export async function searchArtist(query: string): Promise<Artist[]> {
-  const res = await fetch(`/api/search_artist?q=${encodeURIComponent(query)}`);
+  const res = await fetch(`/api/search_artist?q=${encodeURIComponent(query)}`, { credentials: "include" });
   if (!res.ok) return [];
   const data = await res.json();
   return data.artists || [];
 }
 
 export async function getUserProfile(): Promise<UserProfile | null> {
-  const res = await fetch("/api/profile");
+  const res = await fetch("/api/profile", { credentials: "include" });
   if (!res.ok) return null;
   const data = await res.json();
   // Return null if empty object
@@ -142,6 +146,7 @@ export async function updateUserProfile(profile: UserProfile): Promise<boolean> 
   const res = await fetch("/api/profile", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(profile),
   });
   return res.ok;
@@ -151,6 +156,7 @@ export async function playAllTracks(uris: string[], queueOnly = false): Promise<
   const res = await fetch(`/api/play_all`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ uris, queue_only: queueOnly }),
   });
   
@@ -180,7 +186,7 @@ export interface Playlist {
 }
 
 export async function getUserPlaylists(): Promise<Playlist[]> {
-  const res = await fetch("/api/playlists");
+  const res = await fetch("/api/playlists", { credentials: "include" });
   if (!res.ok) return [];
   const data = await res.json();
   return data.playlists || [];
@@ -190,6 +196,7 @@ export async function addTrackToPlaylist(playlistId: string, trackUri: string): 
   const res = await fetch("/api/playlists/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ playlist_id: playlistId, track_uri: trackUri }),
   });
   

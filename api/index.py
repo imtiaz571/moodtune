@@ -25,6 +25,9 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")
 if app.secret_key == "dev_secret_key":
     print("WARNING: Using default FLASK_SECRET_KEY. This is a security risk in production.")
 app.permanent_session_lifetime = timedelta(days=30)
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_HTTPONLY"] = True
 
 # Allow requests from Vite dev server and production origins
 CORS(app, supports_credentials=True, origins=[
@@ -83,7 +86,7 @@ def firebase_config():
 @app.route("/login")
 def login():
     try:
-        sp_oauth = spotify_service.get_oauth_manager()
+        sp_oauth = spotify_service.get_oauth_manager(request.host_url)
         auth_url = sp_oauth.get_authorize_url()
         return redirect(auth_url)
     except Exception as e:
@@ -96,9 +99,17 @@ def login():
 
 @app.route("/callback")
 def callback():
-    sp_oauth = spotify_service.get_oauth_manager()
+    error = request.args.get('error')
+    if error:
+        print(f"Spotify callback error: {error}")
+        return redirect(f"/?auth_error={error}")
+
+    sp_oauth = spotify_service.get_oauth_manager(request.host_url)
     session.clear()
     code = request.args.get('code')
+    if not code:
+        return redirect("/?auth_error=no_code")
+
     try:
         token_info = sp_oauth.get_access_token(code)
         session.permanent = True
@@ -109,14 +120,16 @@ def callback():
         user_info = sp_client.current_user()
         session["user_id"] = user_info['id']
         session["user_name"] = user_info.get('display_name')
-        if user_info.get('images'):
+        if user_info.get('images') and len(user_info['images']) > 0:
             session["user_image"] = user_info['images'][0].get('url')
         else:
             session["user_image"] = None
+
+        return redirect("/?login=success")
             
     except Exception as e:
         print("Error getting token:", e)
-    return redirect(url_for("index"))
+        return redirect("/?auth_error=token_failed")
 
 @app.route("/logout")
 def logout():

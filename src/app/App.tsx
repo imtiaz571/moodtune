@@ -194,6 +194,19 @@ export default function App() {
   // ─── Init Auth ─────────────────────────────────────────────────
 
   useEffect(() => {
+    // Check URL parameters for Spotify auth results
+    const urlParams = new URLSearchParams(window.location.search);
+    const loginStatus = urlParams.get("login");
+    const authError = urlParams.get("auth_error");
+
+    if (loginStatus === "success") {
+      addToast("Successfully logged in with Spotify!", "success");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (authError) {
+      addToast(`Spotify login failed: ${authError}`, "error");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     getAuthStatus().then((status) => {
       setSpotifyLoggedIn(status.logged_in);
       if (status.logged_in && status.user) {
@@ -213,7 +226,7 @@ export default function App() {
         setUserProfile(null);
       }
     });
-  }, []);
+  }, [addToast, loadHistory]);
 
   // ─── Voice Input ────────────────────────────────────────────────────────
 
@@ -287,7 +300,7 @@ export default function App() {
     if (!text.trim() || isSending) return;
 
     if (!currentUser) {
-      addToast("Please sign in with Google to chat.", "error");
+      addToast("Please log in with Spotify to chat.", "error");
       return;
     }
 
