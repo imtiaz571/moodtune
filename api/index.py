@@ -168,10 +168,14 @@ def search_artist():
         return jsonify({"artists": []})
         
     token_info = session.get("token_info")
-    if not token_info:
-        return jsonify({"error": "not_logged_in"}), 401
+    if token_info:
+        sp_client = spotify_service.get_client(token_info)
+    else:
+        sp_client = spotify_service.get_app_client()
         
-    sp_client = spotify_service.get_client(token_info)
+    if not sp_client:
+        return jsonify({"error": "could_not_init_spotify_client"}), 500
+
     artists = spotify_service.search_artist(sp_client, query)
     return jsonify({"artists": artists})
 
