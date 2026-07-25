@@ -140,6 +140,3 @@ This project is configured for deployment on **Vercel**.
 
 ---
 
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
