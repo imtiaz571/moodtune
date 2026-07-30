@@ -6,7 +6,7 @@
 
 ## ✨ Features
 
-- 💬 **AI Conversational Interface**: Interactive chat powered by Google Gemini AI to analyze your mood, feelings, and musical preferences.
+- 💬 **AI Conversational Interface**: Interactive chat powered by LLAMA 3.1 8b instruct to analyze your mood, feelings, and musical preferences.
 - 🎧 **Spotify Integration**: Full OAuth 2.0 integration with Spotify to search tracks, preview audio, and seamlessly save custom playlists directly to your Spotify account.
 - 🔥 **Firebase Support**: Secure user management and session cloud storage.
 - 🎨 **Modern Dark UI**: Fluid animations and sleek design built with React, Vite, Tailwind CSS, and Radix UI components.
@@ -31,7 +31,7 @@ Make sure you have installed:
 - [Node.js](https://nodejs.org/) (v18 or higher) & `npm` / `pnpm`
 - [Python](https://www.python.org/) (v3.10 or higher)
 - A [Spotify Developer Account](https://developer.spotify.com/dashboard)
-- A [Google AI Studio API Key](https://aistudio.google.com/) (Gemini)
+- A Llama 3.1 8b instruct api.(https://build.nvidia.com/)
 
 ---
 
